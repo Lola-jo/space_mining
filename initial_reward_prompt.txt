@@ -1,0 +1,57 @@
+def compute_reward(self, action, observation, info):
+    # Mining rewards
+    reward = 0.0
+    mined_something = False
+    
+    for i, asteroid_pos in enumerate(self.asteroid_positions):
+        if self.asteroid_resources[i] <= 0:
+            continue
+        
+        distance = np.linalg.norm(self.agent_position - asteroid_pos)
+        
+        if distance < 20.0:  # Increased mining range
+            mined_amount = min(5.0, self.asteroid_resources[i])
+            self.asteroid_resources[i] -= mined_amount
+            self.agent_inventory += mined_amount
+            
+            reward += mined_amount * (1 + np.exp(-distance))  
+            
+            if distance < 10.0:  # Bonus for delivering resources nearby
+                reward += 2.0 * mined_amount * (1 + np.exp(-distance))
+                
+            mined_something = True
+    
+    if not mined_something:
+        reward -= 0.5  # Reduced penalty for trying to mine with nothing nearby
+        
+    # Delivery rewards
+    distance_to_mothership = np.linalg.norm(self.agent_position - self.mothership_pos)
+    
+    if distance_to_mothership < 10.0 and self.agent_inventory > 0:
+        delivered_amount = self.agent_inventory
+        
+        reward += delivered_amount * (1 + np.exp(-distance_to_mothership))  
+        
+        energy_recharged = min(20.0, 100.0 - self.agent_energy)
+        self.agent_energy += energy_recharged
+        reward += energy_recharged * 0.05  
+        
+    # Exploration bonuses
+    exploration_bonus = 0.1 * (1 + np.exp(-distance_to_mothership))
+    
+    if distance_to_mothership > 5.0:
+        reward += exploration_bonus
+        
+    # Collision penalties
+    obstacle_collisions = info["obstacle_collisions"]
+    
+    if obstacle_collisions > 0:
+        collision_penalty = -obstacle_collisions * (1 + np.exp(-distance_to_mothership))  
+        
+        # Introduce a stronger penalty for collisions near the mothership
+        if distance_to_mothership < 5.0:
+            collision_penalty *= 2.0
+        
+        reward += collision_penalty
+    
+    return reward, {"mined_something": mined_something, "delivered_amount": self.agent_inventory}

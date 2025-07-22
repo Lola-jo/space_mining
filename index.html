@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>SpaceMining RL Environment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      background: #404D5B;
+      color: #E7E5DF;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background: #5492C7;
+      color: #E7E5DF;
+      padding: 1.5rem 2rem;
+      text-align: center;
+      font-size: 2.2rem;
+      font-weight: bold;
+      letter-spacing: 2px;
+    }
+    nav {
+      background: #404D5B;
+      padding: 0.5rem 2rem;
+      text-align: right;
+    }
+    nav a {
+      color: #E7E5DF;
+      margin-left: 2rem;
+      text-decoration: none;
+      font-weight: bold;
+      font-size: 1.1rem;
+    }
+    nav a:hover {
+      color: #99B86B;
+    }
+    .container {
+      max-width: 900px;
+      margin: 2rem auto;
+      background: #404D5B;
+      border-radius: 12px;
+      box-shadow: 0 2px 16px #0004;
+      padding: 2rem;
+    }
+    h2 {
+      color: #5492C7;
+      margin-top: 2rem;
+    }
+    .features, .quickstart, .config, .task, .demo {
+      margin-bottom: 2rem;
+    }
+    code, pre {
+      background: #23272e;
+      color: #E7E5DF;
+      border-radius: 6px;
+      padding: 0.2em 0.5em;
+      font-size: 1em;
+    }
+    .gif-gallery {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+    .gif-card {
+      background: #23272e;
+      border-radius: 8px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px #0003;
+      text-align: center;
+      width: 260px;
+    }
+    .gif-card img {
+      width: 220px;
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      background: #222;
+    }
+    .success { color: #99B86B; }
+    .failure { color: #C75454; }
+    @media (max-width: 600px) {
+      .container { padding: 1rem; }
+      .gif-gallery { flex-direction: column; align-items: center; }
+      .gif-card { width: 95%; }
+      .gif-card img { width: 95%; }
+    }
+  </style>
+</head>
+<body>
+  <header>SpaceMining RL Environment</header>
+  <nav>
+    <a href="#features">Features</a>
+    <a href="#task">Task</a>
+    <a href="#demo">Demo</a>
+    <a href="https://github.com/yourusername/space_mining" target="_blank">GitHub</a>
+  </nav>
+  <div class="container">
+    <section>
+      <h2>What is SpaceMining?</h2>
+      <p>
+        <b>SpaceMining</b> is a multi-agent reinforcement learning environment simulating collaborative asteroid mining in space. Agents must collect resources, deliver them to the mothership, manage energy, avoid obstacles, and learn to cooperate.
+      </p>
+    </section>
+    <section id="features" class="features">
+      <h2>Features</h2>
+      <ul>
+        <li>Physics-based 3D space mining simulation</li>
+        <li>Resource &amp; energy management</li>
+        <li>Partial observability and dynamic environment</li>
+        <li>Multi-agent collaboration and communication</li>
+        <li>Customizable reward structure and scenario</li>
+      </ul>
+    </section>
+    <section id="task" class="task">
+      <h2>Task Description</h2>
+      <p>
+        Agents (mining robots) are deployed in a 3D space with randomly distributed asteroids and a central mothership. Each agent must:
+      </p>
+      <ul>
+        <li>Search for and mine resource-rich asteroids</li>
+        <li>Efficiently manage energy and return to the mothership for recharging</li>
+        <li>Avoid collisions with obstacles and other agents</li>
+        <li>Communicate and coordinate with teammates</li>
+        <li>Deliver resources to maximize team efficiency</li>
+      </ul>
+      <p>
+        <a href="task_description.txt" style="color:#5492C7;">Read full task description &rarr;</a>
+      </p>
+    </section>
+    <section class="config">
+      <h2>Training Configuration</h2>
+      <p>
+        The environment supports <b>PPO</b> and other RL algorithms. See <code>space_mining_ollama.yml</code> for full configuration and hyperparameters.
+      </p>
+      <pre>
+max_episode_steps: 1600
+num_agents: 3
+max_asteroids: 15
+observation_radius: 25
+communication_radius: 35
+policy: MlpPolicy
+learning_rate: 0.0003
+total_timesteps: 3,000,000
+      </pre>
+    </section>
+    <section class="quickstart">
+      <h2>Quick Start</h2>
+      <pre>
+pip install gymnasium numpy pygame
+python envs/space_mining/test_env.py
+python stable_eureka/main.py --config envs/space_mining/space_mining_ollama.yml
+      </pre>
+    </section>
+    <section id="demo" class="demo">
+      <h2>Demo: Agent Behaviors</h2>
+      <div class="gif-gallery">
+        <div class="gif-card">
+          <img src="assets/gif/episode_1_20250722_121511.gif" alt="Success GIF">
+          <div class="success">Successful Training</div>
+        </div>
+        <div class="gif-card">
+          <img src="assets/gif/episode_2_20250722_121634.gif" alt="Success GIF">
+          <div class="success">Successful Training</div>
+        </div>
+        <div class="gif-card">
+          <img src="assets/gif/eval.gif" alt="Failure GIF">
+          <div class="failure">Failed Training</div>
+        </div>
+      </div>
+      <p style="margin-top:1.5rem;">
+        <b>Tip:</b> You can embed your own training GIFs here to showcase agent learning and failure cases.
+      </p>
+    </section>
+    <section>
+      <h2>More</h2>
+      <ul>
+        <li><a href="README.md" style="color:#5492C7;">Full Documentation (README)</a></li>
+        <li><a href="space_mining_ollama.yml" style="color:#5492C7;">Training Config (YAML)</a></li>
+        <li><a href="https://github.com/yourusername/space_mining" style="color:#5492C7;" target="_blank">GitHub Repository</a></li>
+      </ul>
+    </section>
+  </div>
+</body>
+</html>

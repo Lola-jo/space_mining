@@ -1,0 +1,113 @@
+eureka:
+    backend: 'ollama'                   # 'ollama' or 'openai'
+    model: 'llama3.1'                   # name of the model (from ollama or openai models)
+    temperature: 0.5                    # the higher it is, the more random the output will be
+    iterations: 8                       # number of total iterations
+    samples: 8                          # number of samples to generate per iteration, they will run in parallel
+    sleep_time_per_iteration: 5         # sleep time between iterations in minutes
+    sleep_time_between_samples: 30      # sleep time between samples in seconds (to avoid CUDA memory issues)
+    use_initial_reward_prompt: true     # use the initial reward prompt provided in the environment folder
+    pretraining_with_best_model: false   # use best model weights for pretraining the next iteration models
+    short_evaluation_timesteps: 1000000  # short evaluation timesteps, default 1M
+    final_evaluation_timesteps: 30000000 # long evaluation timesteps
+    cot:
+        enabled: true
+        evaluation:
+            weight_performance: 0.7
+            weight_thought_process: 0.3
+        prompt:
+            temperature: 0.8
+            max_tokens: 2500
+
+environment:
+    name: space_mining
+    class_name: make_env
+    max_episode_steps: 1600             # maximum number of steps per episode
+    kwargs:                             # kwargs to pass to the environment class
+        num_agents: 3
+        grid_size: 100
+        max_asteroids: 15
+        observation_radius: 25
+        communication_radius: 35
+    benchmark: null                     # no standard benchmark available for this custom environment
+
+experiment: 
+    parent: 'experiments'               # parent folder where the experiments will be saved
+    name: 'space_mining_llama3'         # name of the experiment folder
+    use_datetime: true                  # use datetime in the experiment folder name
+
+rl:
+    algo: 'ppo'                         # PPO is well-suited for this complex environment             
+    algo_params:                        # PPO hyperparameters            
+        policy: 'MlpPolicy'      # 使用MlpPolicy而不是MultiInputPolicy
+        policy_kwargs:                   
+            net_arch: 
+                pi: [256, 256, 128]     # Actor network (policy)
+                vf: [256, 256, 128]     # Critic network (value function)
+        learning_rate: 0.0003           # Learning rate
+        n_steps: 2048                   # Steps per environment per update
+        batch_size: 64                  # Minibatch size
+        n_epochs: 10                    # Number of epochs when optimizing the surrogate loss
+        gamma: 0.99                     # Discount factor
+        gae_lambda: 0.95                # Factor for trade-off of bias vs variance in GAE
+        clip_range: 0.2                 # Clipping parameter
+        clip_range_vf: 0.2              # Clipping parameter for the value function
+        ent_coef: 0.01                  # Entropy coefficient (higher for more exploration)
+        vf_coef: 0.5                    # Value function coefficient
+        max_grad_norm: 0.5              # Maximum norm for gradient clipping
+
+    training:                           
+        torch_compile: false            # Whether to use torch.compile()
+        seed: 42                        # Random seed
+        eval:
+            seed: 43                    # Seed for evaluation        
+            num_episodes: 10            # Number of episodes to evaluate
+            num_evals: 500               # Number of evaluations during training
+        total_timesteps: 3_000_000      # Total training timesteps (increased for complex task)
+        device: 'auto'                  # 'cuda' or 'cpu'
+        num_envs: 8                     # Number of parallel environments
+        state_stack: 1                  # Number of frames to stack (1 for MLP policy)
+        is_atari: false                 # Not an Atari environment
+
+    evaluation:
+        seed: 44                        # Seed for final evaluation
+        num_episodes: 20                # Number of episodes for final evaluation
+        save_gif: true                  # Save a GIF of the best model
+        
+logging:
+    log_dir: "logs/space_mining"
+    log_level: "INFO"
+
+random_test:
+    enabled: false                      # Disable random hyperparameter testing by default
+
+param_ranges:
+    learning_rate:
+        type: log_uniform
+        min: 0.0001
+        max: 0.001
+    n_steps:
+        type: choice
+        values: [1024, 2048, 4096]
+    batch_size:
+        type: choice
+        values: [64, 128, 256]
+    n_epochs:
+        type: int_uniform
+        min: 5
+        max: 15
+    gamma:
+        type: uniform
+        min: 0.98
+        max: 0.995
+    ent_coef:
+        type: log_uniform
+        min: 0.001
+        max: 0.05
+
+gpu_management:
+    memory_threshold: 0.7               # GPU memory usage threshold
+    utilization_threshold: 90           # GPU utilization threshold (percentage)
+    check_interval: 300                 # GPU status check interval (seconds)
+    auto_clear: true                    # Automatically clear GPU memory
+    prefer_empty_gpu: true              # Prefer empty GPUs 
