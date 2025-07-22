@@ -101,7 +101,7 @@
     <section>
       <h2>What is SpaceMining?</h2>
       <p>
-        <b>SpaceMining</b> is a multi-agent reinforcement learning environment simulating collaborative asteroid mining in space. Agents must collect resources, deliver them to the mothership, manage energy, avoid obstacles, and learn to cooperate.
+        <b>SpaceMining</b> is a single-agent reinforcement learning environment simulating asteroid mining in space. The agent must collect resources from asteroids, deliver them to the mothership, manage energy, and avoid obstacles.
       </p>
     </section>
     <section id="features" class="features">
@@ -110,21 +110,19 @@
         <li>Physics-based 3D space mining simulation</li>
         <li>Resource &amp; energy management</li>
         <li>Partial observability and dynamic environment</li>
-        <li>Multi-agent collaboration and communication</li>
         <li>Customizable reward structure and scenario</li>
       </ul>
     </section>
     <section id="task" class="task">
       <h2>Task Description</h2>
       <p>
-        Agents (mining robots) are deployed in a 3D space with randomly distributed asteroids and a central mothership. Each agent must:
+        The agent (mining robot) is deployed in a 3D space with randomly distributed asteroids and a central mothership. The agent must:
       </p>
       <ul>
         <li>Search for and mine resource-rich asteroids</li>
         <li>Efficiently manage energy and return to the mothership for recharging</li>
-        <li>Avoid collisions with obstacles and other agents</li>
-        <li>Communicate and coordinate with teammates</li>
-        <li>Deliver resources to maximize team efficiency</li>
+        <li>Avoid collisions with obstacles</li>
+        <li>Deliver resources to maximize efficiency</li>
       </ul>
       <p>
         <a href="task_description.txt" style="color:#5492C7;">Read full task description &rarr;</a>
@@ -137,10 +135,10 @@
       </p>
       <pre>
 max_episode_steps: 1600
-num_agents: 3
-max_asteroids: 15
-observation_radius: 25
-communication_radius: 35
+grid_size: 100
+max_asteroids: 25
+max_resource_per_asteroid: 80
+observation_radius: 50
 policy: MlpPolicy
 learning_rate: 0.0003
 total_timesteps: 3,000,000
@@ -150,24 +148,31 @@ total_timesteps: 3,000,000
       <h2>Quick Start</h2>
       <pre>
 pip install gymnasium numpy pygame
-python envs/space_mining/test_env.py
-python stable_eureka/main.py --config envs/space_mining/space_mining_ollama.yml
+python test_env.py
       </pre>
     </section>
     <section id="demo" class="demo">
       <h2>Demo: Agent Behaviors</h2>
       <div class="gif-gallery">
         <div class="gif-card">
-          <img src="assets/gif/episode_1_20250722_121511.gif" alt="Success GIF">
-          <div class="success">Successful Training</div>
+          <img src="assets/gif/episode_1_20250722_121511.gif" alt="Success GIF 1">
+          <div class="success">Successful Run</div>
         </div>
         <div class="gif-card">
-          <img src="assets/gif/episode_2_20250722_121634.gif" alt="Success GIF">
-          <div class="success">Successful Training</div>
+          <img src="assets/gif/episode_2_20250722_121634.gif" alt="Success GIF 2">
+          <div class="success">Successful Run</div>
         </div>
         <div class="gif-card">
-          <img src="assets/gif/eval.gif" alt="Failure GIF">
-          <div class="failure">Failed Training</div>
+          <img src="assets/gif/episode_3_20250722_121806.gif" alt="Success GIF 3">
+          <div class="success">Successful Run</div>
+        </div>
+        <div class="gif-card">
+          <img src="assets/gif/episode_4_20250722_121936.gif" alt="Failure GIF">
+          <div class="failure">Failed Run</div>
+        </div>
+        <div class="gif-card">
+          <img src="assets/gif/episode_5_20250722_122108.gif" alt="Success GIF 4">
+          <div class="success">Successful Run</div>
         </div>
       </div>
       <p style="margin-top:1.5rem;">

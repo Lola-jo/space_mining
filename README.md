@@ -1,13 +1,13 @@
-# SpaceMining: Multi-Agent Reinforcement Learning Environment
+# SpaceMining: Single-Agent Reinforcement Learning Environment
 
-SpaceMining is a challenging multi-agent RL environment simulating collaborative asteroid mining in space. Agents (mining robots) must collect resources from asteroids and deliver them to the mothership, while managing energy, avoiding obstacles, and collaborating with each other.
+SpaceMining is a challenging single-agent RL environment simulating asteroid mining in space. The agent (a mining robot) must collect resources from asteroids and deliver them to the mothership, while managing energy and avoiding obstacles.
 
 ## Features
 - **Physics Simulation**: Thrust, inertia, collisions, and simplified gravity
-- **Resource & Energy Management**: Agents must balance mining, delivery, and energy recharge
-- **Partial Observability**: Each agent perceives only a limited radius
+- **Resource & Energy Management**: The agent must balance mining, delivery, and energy recharge
+- **Partial Observability**: The agent perceives only a limited radius
 - **Dynamic Environment**: Randomized asteroids, obstacles, and resource distribution
-- **Multi-Agent Collaboration**: Agents can communicate and coordinate
+- **Customizable Reward Structure**: Flexible reward and fitness evaluation
 
 ## Installation
 
@@ -19,20 +19,15 @@ pip install gymnasium numpy pygame
 
 1. **Test the Environment**
    ```bash
-   python envs/space_mining/test_env.py
+   python test_env.py
    ```
 
 2. **Train with PPO**
-   ```bash
-   python stable_eureka/main.py --config envs/space_mining/space_mining_ollama.yml
-   ```
-
-3. **Manual Training Example**
    ```python
    import gymnasium as gym
    from stable_baselines3 import PPO
-   from envs.space_mining.env_code.env import SpaceMiningEnv
-   env = SpaceMiningEnv()
+   from env_code.env import SpaceMiningEnv
+   env = SpaceMiningEnv(render_mode=None)
    model = PPO("MlpPolicy", env, verbose=1)
    model.learn(total_timesteps=500000)
    model.save("space_mining_model")
@@ -42,33 +37,33 @@ pip install gymnasium numpy pygame
 
 ### Observation Space
 - **Agent State**: [position(3), velocity(3), energy(1), inventory(1)]
-- **Asteroids**: Up to 10 visible asteroids [relative position(3), resource amount(1)]
+- **Asteroids**: Up to 15 visible asteroids [relative position(3), resource amount(1)]
 - **Mothership**: [relative position(3)]
 
 ### Action Space
 - **Thrust**: [fx, fy, fz] in [-1.0, 1.0]
 - **Mining**: Scalar in [0.0, 1.0] (active if >0.5)
 
-### Reward Structure
+### Reward Structure (default)
 - Mining success: `+2.0 × mined amount`
 - Resource delivery: `+10.0 × delivered amount`
 - Energy recharge: `+0.2 × recharge amount`
 - Obstacle collision: `-10.0`
-- Energy depletion: `-50.0`
-- Boundary collision: `-2.0`
+- Energy depletion: `-20.0`
+- Boundary collision: `-1.0`
 - Invalid mining: `-0.5` (if no asteroid nearby)
 
-### Configurable Parameters
-- `max_episode_steps` (default 1000)
+### Configurable Parameters (see env.py)
+- `max_episode_steps` (default 1600)
 - `grid_size` (default 100)
-- `max_asteroids` (default 15)
-- `max_resource_per_asteroid` (default 50)
-- `observation_radius` (default 30)
+- `max_asteroids` (default 25)
+- `max_resource_per_asteroid` (default 80)
+- `observation_radius` (default 50)
 - `render_mode`: None, "human", or "rgb_array"
 
 ### Rendering
 - 2D isometric projection
-- Green: agent, Brown: asteroid, Blue: mothership, Red: obstacle
+- Green: agent, Orange: asteroid, Blue: mothership, Red: obstacle
 - Energy bar and inventory indicator
 
 ### Fitness Score
@@ -79,14 +74,14 @@ A comprehensive score for agent performance, considering:
 - Proximity to mothership when carrying resources
 
 ## Task Description
-See `task_description.txt` for a detailed English description of the multi-agent collaborative mining task, including goals, behaviors, physical properties, evaluation metrics, and reward design.
+See `task_description.txt` for a detailed English description of the single-agent mining task, including goals, behaviors, physical properties, evaluation metrics, and reward design.
 
 ## Training Configuration
-See `space_mining_ollama.yml` for a full training and evaluation configuration (PPO, hyperparameters, parallelism, etc).
+See `space_mining_ollama.yml` for a full training and evaluation configuration (PPO, hyperparameters, etc).
 
 ## Visualization & Web Demo
-- **Success GIFs**: See `experiments/space_mining_llama3/2025-07-15-17-21/code/iteration_4/sample_2/episode_1_*.gif` for successful agent behaviors.
-- **Failure GIFs**: See `experiments/space_mining_llama3/2025-07-15-17-21/code/iteration_0/sample_1/eval.gif` for failed training runs.
+- **Success GIFs**: See `assets/gif/episode_1_20250722_121511.gif`, etc. for successful agent behaviors.
+- **Failure GIFs**: See `assets/gif/episode_4_20250722_121936.gif` for failed training runs.
 - You can embed these GIFs in your project website to showcase agent learning and failure cases.
 
 ## Citation
