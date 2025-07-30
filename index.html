@@ -7,14 +7,14 @@
   <style>
     body {
       background: #ffffff;
-      color: #000000; /* 改为黑色文字 */
+      color: #000000;
       font-family: 'Segoe UI', Arial, sans-serif;
       margin: 0;
       padding: 0;
     }
     header {
       background: #5492C7;
-      color: #ffffff; /* 标题文字改为白色 */
+      color: #ffffff;
       padding: 1.5rem 2rem;
       text-align: center;
       font-size: 2.2rem;
@@ -25,39 +25,46 @@
       background: #ffffff;
       padding: 0.5rem 2rem;
       text-align: right;
-      border-bottom: 1px solid #e0e0e0; /* 添加分割线 */
+      border-bottom: 1px solid #e0e0e0;
+    }
+    .research-purpose {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
     }
     nav a {
-      color: #5492C7; /* 导航链接改为蓝色 */
+      color: #5492C7;
       margin-left: 2rem;
       text-decoration: none;
       font-weight: bold;
       font-size: 1.1rem;
     }
     nav a:hover {
-      color: #2a6496; /* 悬停时深蓝色 */
+      color: #2a6496;
     }
     .container {
       max-width: 900px;
       margin: 2rem auto;
       background: #ffffff;
       border-radius: 12px;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.1); /* 更柔和的阴影 */
+      box-shadow: 0 2px 16px rgba(0,0,0,0.1);
       padding: 2rem;
-      border: 1px solid #e0e0e0; /* 添加边框 */
+      border: 1px solid #e0e0e0;
     }
     h2 {
-      color: #5492C7; /* 保留蓝色标题 */
+      color: #5492C7;
       margin-top: 2rem;
-      border-bottom: 1px solid #e0e0e0; /* 标题下划线 */
+      border-bottom: 1px solid #e0e0e0;
       padding-bottom: 0.5rem;
     }
     .features, .quickstart, .config, .task, .demo {
       margin-bottom: 2rem;
     }
     code, pre {
-      background: #f5f5f5; /* 浅灰代码背景 */
-      color: #333333; /* 深灰代码文字 */
+      background: #f5f5f5;
+      color: #333333;
       border-radius: 6px;
       padding: 0.2em 0.5em;
       font-size: 1em;
@@ -86,10 +93,12 @@
       background: #f5f5f5;
       border: 1px solid #e0e0e0;
     }
-    .success { color: #4CAF50; } /* 成功绿色 */
-    .failure { color: #F44336; } /* 失败红色 */
+    .success { color: #4CAF50; }
+    .failure { color: #F44336; }
+    .learning { color: #FF9800; }
+    .learning { color: #FF9800; }
     a {
-      color: #5492C7; /* 链接统一为蓝色 */
+      color: #5492C7;
       text-decoration: none;
     }
     a:hover {
@@ -100,6 +109,36 @@
     }
     li {
       margin-bottom: 0.5rem;
+    }
+    .legend {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1rem 0;
+    }
+    .legend h4 {
+      margin-top: 0;
+      color: #495057;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    .legend-color {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      margin-right: 10px;
+      border: 1px solid #ccc;
+    }
+    .research-purpose {
+      background: #e3f2fd;
+      border-left: 4px solid #2196f3;
+      padding: 1rem;
+      margin: 1rem 0;
+      border-radius: 4px;
     }
     @media (max-width: 600px) {
       .container { padding: 1rem; }
@@ -114,99 +153,221 @@
 <body>
   <header>SpaceMining RL Environment</header>
   <nav>
+    <a href="#purpose">Purpose</a>
+    <a href="#demo">Demo</a>
     <a href="#features">Features</a>
     <a href="#task">Task</a>
-    <a href="#demo">Demo</a>
-    <a href="https://github.com/yourusername/space_mining" target="_blank">GitHub</a>
+    <a href="https://github.com/Lola-jo/space_mining" target="_blank">GitHub</a>
   </nav>
   <div class="container">
     <section>
       <h2>What is SpaceMining?</h2>
       <p>
-        <b>SpaceMining</b> is a single-agent reinforcement learning environment simulating asteroid mining in space. The agent must collect resources from asteroids, deliver them to the mothership, manage energy, and avoid obstacles.
+        <b>SpaceMining</b> is a single-agent reinforcement learning environment simulating asteroid mining in a 2D space environment. The agent (mining robot) must collect resources from asteroids, deliver them to the mothership, manage energy consumption, and avoid moving obstacles while maximizing efficiency.
       </p>
     </section>
+    
+    <section id="purpose" class="research-purpose">
+      <h2>Research Purpose</h2>
+      <p>
+        This environment was specifically designed to evaluate large language models' ability to design reward functions for unfamiliar environments without prior knowledge. Recent studies have raised concerns that large language models may carry prior knowledge from pretraining data about standard RL environments (like CartPole, BipedalWalker, Ant), leading to potential prompt leakage and evaluation biases.
+      </p>
+      <p>
+        To address this issue, SpaceMining serves as a custom environment to assess true generalization capabilities on tasks free from such pretrained knowledge. This allows researchers to evaluate whether LLMs can effectively design reward functions for completely novel environments.
+      </p>
+    </section>
+    
+    <section id="purpose" class="research-purpose">
+      <h2>Research Purpose</h2>
+      <p>
+        This environment was specifically designed to evaluate large language models' ability to design reward functions for unfamiliar environments without prior knowledge. Recent studies have raised concerns that large language models may carry prior knowledge from pretraining data about standard RL environments (like CartPole, BipedalWalker, Ant), leading to potential prompt leakage and evaluation biases.
+      </p>
+      <p>
+        To address this issue, SpaceMining serves as a custom environment to assess true generalization capabilities on tasks free from such pretrained knowledge. This allows researchers to evaluate whether LLMs can effectively design reward functions for completely novel environments.
+      </p>
+    </section>
+    
+    <section id="demo" class="demo">
+      <h2>Demo: Agent Behaviors</h2>
+      <p>
+        The GIF demonstrations showcase different agent behaviors and training outcomes, from successful resource collection to various failure modes and learning phases.
+      </p>
+      <div class="gif-gallery">
+        <div class="gif-card">
+          <img src="assets/gif/space_mining_demo_episode_5_20250730_224355.gif" alt="Complete Episode">
+          <div class="success">Complete Episode (1200 steps)</div>
+          <small>Optimal resource collection</small>
+        </div>
+        <div class="gif-card">
+          <img src="assets/gif/space_mining_demo_episode_4_20250730_225245.gif" alt="Successful Mining">
+          <div class="success">Successful Mining</div>
+          <small>Strategic resource collection</small>
+        </div>
+        <div class="gif-card">
+          <img src="assets/gif/space_mining_demo_episode_4_20250730_222922.gif" alt="All Asteroids Depleted">
+          <div class="success">All Asteroids Depleted</div>
+          <small>Complete resource extraction</small>
+        </div>
+        <div class="gif-card">
+          <img src="assets/gif/space_mining_demo_episode_3_20250730_224120.gif" alt="Energy Depletion">
+          <div class="failure">Energy Depletion</div>
+          <small>Failed to recharge at mothership</small>
+        </div>
+        <div class="gif-card">
+          <img src="assets/gif/space_mining_demo_episode_4_20250730_222922.gif" alt="Poor Obstacle Avoidance">
+          <div class="failure">Poor Obstacle Avoidance</div>
+          <small>Multiple collisions</small>
+        </div>
+        <div class="gif-card">
+          <img src="assets/gif/space_mining_demo_episode_1_20250730_230841.gif" alt="Early Exploration">
+          <div class="learning">Early Exploration</div>
+          <small>Initial learning phase</small>
+        </div>
+      </div>
+      
+      <div class="legend">
+        <h4>Visual Elements Legend</h4>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #32CD32;"></div>
+          <span><strong>Green Circle:</strong> Agent (mining robot)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #32A1C8;"></div>
+          <span><strong>Blue Circle:</strong> Mothership (delivery point)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #FFD700;"></div>
+          <span><strong>Yellow Circles:</strong> Asteroids (mining targets)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #FF4500;"></div>
+          <span><strong>Red Circles:</strong> Moving obstacles (avoid)</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #FF0000;"></div>
+          <span><strong>Red Ring:</strong> Mining range indicator</span>
+        </div>
+        <div class="legend-item">
+          <div class="legend-color" style="background-color: #87CEEB;"></div>
+          <span><strong>Light Blue Ring:</strong> Observation range</span>
+        </div>
+        <p><strong>Health Bars:</strong> Green to red bars above asteroids show remaining resources</p>
+        <p><strong>Status Display:</strong> Top-left shows inventory, energy, and step count</p>
+      </div>
+    </section>
+    
     <section id="features" class="features">
       <h2>Features</h2>
       <ul>
-        <li>Physics-based 3D space mining simulation</li>
-        <li>Resource &amp; energy management</li>
-        <li>Partial observability and dynamic environment</li>
-        <li>Customizable reward structure and scenario</li>
+        <li>2D physics-based space mining simulation with realistic movement</li>
+        <li>Dynamic resource management and energy consumption</li>
+        <li>Partial observability with limited observation radius</li>
+        <li>Moving obstacles and collision detection</li>
+        <li>Customizable reward structure and environment parameters</li>
+        <li>Real-time visualization with health bars and status indicators</li>
       </ul>
     </section>
     <section id="task" class="task">
       <h2>Task Description</h2>
       <p>
-        The agent (mining robot) is deployed in a 3D space with randomly distributed asteroids and a central mothership. The agent must:
+        The agent is deployed in a 2D space environment (80x80 grid) with randomly distributed asteroids and a central mothership. The agent must:
       </p>
       <ul>
-        <li>Search for and mine resource-rich asteroids</li>
-        <li>Efficiently manage energy and return to the mothership for recharging</li>
-        <li>Avoid collisions with obstacles</li>
-        <li>Deliver resources to maximize efficiency</li>
+        <li>Navigate efficiently to discover and mine resource-rich asteroids</li>
+        <li>Manage energy consumption and return to the mothership for recharging</li>
+        <li>Avoid collisions with moving obstacles</li>
+        <li>Deliver resources to maximize collection efficiency</li>
+        <li>Balance exploration and exploitation for optimal performance</li>
       </ul>
       <p>
-        <a href="task_description.txt">Read full task description &rarr;</a>
+        The environment uses a comprehensive fitness scoring system with a target range of approximately 3000 points, evaluating resource collection, energy management, efficiency, and survival time.
       </p>
     </section>
-    <section class="config">
-      <h2>Training Configuration</h2>
+    <section>
+      <h2>Environment Specifications</h2>
+      <h3>State Space</h3>
+      <p>The observation space includes:</p>
+      <ul>
+        <li><strong>Agent State (6 dimensions):</strong> Position (x, y), velocity (vx, vy), energy level, inventory</li>
+        <li><strong>Asteroid Information (up to 45 dimensions):</strong> Relative positions and resource amounts for visible asteroids</li>
+        <li><strong>Mothership Position (2 dimensions):</strong> Relative position to mothership</li>
+      </ul>
+      
+      <h3>Action Space</h3>
+      <p>The action space is continuous with 3 dimensions:</p>
+      <ul>
+        <li><strong>Thrust Control (2 dimensions):</strong> Force applied in x and y directions [-1.0, 1.0]</li>
+        <li><strong>Mining Action (1 dimension):</strong> Binary mining activation [0.0, 1.0]</li>
+      </ul>
+      
+      <h3>Difficulty Level</h3>
       <p>
-        The environment supports <b>PPO</b> and other RL algorithms. See <code>space_mining_ollama.yml</code> for full configuration and hyperparameters.
+        <strong>Medium Difficulty:</strong> The environment presents a balanced challenge with:
+      </p>
+      <ul>
+        <li>Limited observation radius (15 units) requiring strategic exploration</li>
+        <li>Energy management constraints requiring periodic returns to mothership</li>
+        <li>Moving obstacles requiring collision avoidance</li>
+        <li>Resource depletion mechanics requiring efficient mining strategies</li>
+      </ul>
+    </section>
+    <section class="config">
+      <h2>Recommended Training Configuration</h2>
+      <p>
+        The environment is optimized for <b>PPO</b> and other modern RL algorithms. Here are the recommended parameters:
       </p>
       <pre>
-max_episode_steps: 1600
-grid_size: 100
-max_asteroids: 25
-max_resource_per_asteroid: 80
-observation_radius: 50
+# Environment Parameters
+max_episode_steps: 1200
+grid_size: 80
+max_asteroids: 12
+max_resource_per_asteroid: 40
+observation_radius: 15
+mining_range: 8.0
+max_inventory: 100
+
+# Training Parameters
 policy: MlpPolicy
 learning_rate: 0.0003
 total_timesteps: 3,000,000
+batch_size: 64
+n_steps: 2048
+gamma: 0.99
+gae_lambda: 0.95
+clip_range: 0.2
       </pre>
     </section>
     <section class="quickstart">
       <h2>Quick Start</h2>
+      <h3>Installation</h3>
+      <p>Clone the repository and install dependencies:</p>
       <pre>
-pip install gymnasium numpy pygame
+git clone https://github.com/Lola-jo/space_mining.git
+cd space_mining
+pip install gymnasium numpy pygame stable-baselines3
+      </pre>
+      
+      <h3>Test Environment</h3>
+      <pre>
 python test_env.py
       </pre>
-    </section>
-    <section id="demo" class="demo">
-      <h2>Demo: Agent Behaviors</h2>
-      <div class="gif-gallery">
-        <div class="gif-card">
-          <img src="assets/gif/episode_1_20250722_121511.gif" alt="Success GIF 1">
-          <div class="success">Successful Run</div>
-        </div>
-        <div class="gif-card">
-          <img src="assets/gif/episode_2_20250722_121634.gif" alt="Success GIF 2">
-          <div class="success">Successful Run</div>
-        </div>
-        <div class="gif-card">
-          <img src="assets/gif/episode_3_20250722_121806.gif" alt="Success GIF 3">
-          <div class="success">Successful Run</div>
-        </div>
-        <div class="gif-card">
-          <img src="assets/gif/episode_1_20250722_130724.gif" alt="Failure GIF 1">
-          <div class="failure">Failed Run</div>
-        </div>
-        <div class="gif-card">
-          <img src="assets/gif/episode_2_20250722_130807.gif" alt="Failure GIF 2">
-          <div class="failure">Failed Run</div>
-        </div>
-      </div>
-      <p style="margin-top:1.5rem;">
-        <b>Tip:</b> You can embed your own training GIFs here to showcase agent learning and failure cases.
-      </p>
+      
+      <h3>Train Agent</h3>
+      <pre>
+python train_space_mining.py
+      </pre>
+      
+      <h3>Visualize Results</h3>
+      <pre>
+python enjoy_trained_model.py
+      </pre>
     </section>
     <section>
-      <h2>More</h2>
+      <h2>More Information</h2>
       <ul>
         <li><a href="README.md">Full Documentation (README)</a></li>
-        <li><a href="space_mining_ollama.yml">Training Config (YAML)</a></li>
-        <li><a href="https://github.com/yourusername/space_mining" target="_blank">GitHub Repository</a></li>
+        <li><a href="https://github.com/Lola-jo/space_mining" target="_blank">GitHub Repository</a></li>
+        <li><a href="https://github.com/Lola-jo/space_mining/issues" target="_blank">Report Issues</a></li>
       </ul>
     </section>
   </div>
