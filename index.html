@@ -45,7 +45,7 @@
       color: #2a6496;
     }
     .container {
-      max-width: 900px;
+      max-width: 1000px;
       margin: 2rem auto;
       background: #ffffff;
       border-radius: 12px;
@@ -72,18 +72,25 @@
     }
     .gif-gallery {
       display: flex;
-      flex-wrap: wrap;
-      gap: 1.5rem;
-      justify-content: center;
+      flex-direction: column;
+      gap: 30px;
       margin-top: 1rem;
     }
+    
+    .gif-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    
     .gif-card {
+      flex: 1;
+      min-width: 0;
       background: #ffffff;
       border-radius: 8px;
       padding: 1rem;
       box-shadow: 0 2px 8px rgba(0,0,0,0.1);
       text-align: center;
-      width: 260px;
       border: 1px solid #e0e0e0;
     }
     .gif-card img {
@@ -96,10 +103,155 @@
     .success { color: #4CAF50; }
     .failure { color: #F44336; }
     .learning { color: #FF9800; }
-    .learning { color: #FF9800; }
     a {
       color: #5492C7;
       text-decoration: none;
+    }
+    
+    /* Demo section specific styles */
+    .demo {
+      width: 100%;
+      margin: 0 auto;
+      font-family: Arial, sans-serif;
+    }
+    
+    .gif-gallery {
+      display: flex;
+      flex-direction: column;
+      gap: 30px;
+    }
+    
+    .gif-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    
+    .gif-card {
+      flex: 1;
+      min-width: 0;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+      transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      background: white;
+      position: relative;
+      cursor: pointer;
+    }
+    
+    .gif-container {
+      width: 100%;
+      height: 180px; /* 稍微减小高度 */
+      position: relative;
+      overflow: hidden;
+      background: #f5f5f5;
+    }
+    
+    .gif-container img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; /* 改为cover以填充整个容器 */
+      transition: transform 0.3s ease;
+      cursor: pointer;
+      animation: gifLoop 0.1s infinite;
+    }
+    
+    @keyframes gifLoop {
+      0% { opacity: 1; }
+      50% { opacity: 1; }
+      100% { opacity: 1; }
+    }
+    
+    .gif-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0,0,0,0.15);
+    }
+    
+    .gif-card:hover img {
+      transform: scale(1.1);
+    }
+    
+    .gif-card div {
+      padding: 12px 15px;
+      text-align: center;
+      font-weight: bold;
+    }
+    
+    .gif-card small {
+      display: block;
+      padding: 8px 15px 15px;
+      color: #666;
+      font-size: 0.85em;
+      line-height: 1.4;
+    }
+    
+    /* 模态框样式 */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.8);
+      backdrop-filter: blur(5px);
+    }
+    
+    .modal-content {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      max-width: 90%;
+      max-height: 90%;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+      overflow: hidden;
+    }
+    
+    .modal-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      object-fit: contain;
+      max-height: 80vh;
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      color: white;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+      background: rgba(0,0,0,0.5);
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
+    }
+    
+    .modal-close:hover {
+      background: rgba(0,0,0,0.8);
+    }
+    
+    .modal-title {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.8);
+      color: white;
+      padding: 15px;
+      font-size: 16px;
+      font-weight: bold;
     }
     a:hover {
       text-decoration: underline;
@@ -140,13 +292,38 @@
       margin: 1rem 0;
       border-radius: 4px;
     }
+    @media (max-width: 768px) {
+      .container { 
+        padding: 1rem; 
+        max-width: 95%;
+      }
+      .gif-row { 
+        flex-direction: column; 
+        gap: 15px;
+      }
+      .gif-card { 
+        width: 100%; 
+      }
+      nav { 
+        text-align: center; 
+      }
+      nav a { 
+        margin: 0 0.5rem; 
+        font-size: 1rem;
+      }
+    }
+    
     @media (max-width: 600px) {
-      .container { padding: 1rem; }
-      .gif-gallery { flex-direction: column; align-items: center; }
-      .gif-card { width: 95%; }
-      .gif-card img { width: 95%; }
-      nav { text-align: center; }
-      nav a { margin: 0 1rem; }
+      .container { 
+        padding: 0.5rem; 
+        margin: 1rem auto;
+      }
+      .gif-gallery { 
+        gap: 20px; 
+      }
+      .gif-container {
+        height: 150px;
+      }
     }
   </style>
 </head>
@@ -177,84 +354,168 @@
       </p>
     </section>
     
-    <section id="purpose" class="research-purpose">
-      <h2>Research Purpose</h2>
-      <p>
-        This environment was specifically designed to evaluate large language models' ability to design reward functions for unfamiliar environments without prior knowledge. Recent studies have raised concerns that large language models may carry prior knowledge from pretraining data about standard RL environments (like CartPole, BipedalWalker, Ant), leading to potential prompt leakage and evaluation biases.
-      </p>
-      <p>
-        To address this issue, SpaceMining serves as a custom environment to assess true generalization capabilities on tasks free from such pretrained knowledge. This allows researchers to evaluate whether LLMs can effectively design reward functions for completely novel environments.
-      </p>
-    </section>
-    
     <section id="demo" class="demo">
       <h2>Demo: Agent Behaviors</h2>
       <p>
         The GIF demonstrations showcase different agent behaviors and training outcomes, from successful resource collection to various failure modes and learning phases.
       </p>
       <div class="gif-gallery">
-        <div class="gif-card">
-          <img src="assets/gif/space_mining_demo_episode_1_20250730_230841.gif" alt="Early Exploration">
-          <div class="learning">Early Exploration Eval num_timesteps=25000</div>
-          <small>Initial learning phase</small>
+        <!-- 第一行 -->
+        <div class="gif-row">
+          <div class="gif-card">
+            <div class="gif-container">
+              <img src="assets/gif/space_mining_demo_episode_1_20250730_230841.gif" alt="Early Exploration">
+            </div>
+            <div class="learning">Early Exploration Eval num_timesteps=25000</div>
+            <small>Initial learning phase</small>
+          </div>
+          <div class="gif-card">
+            <div class="gif-container">
+              <img src="assets/gif/space_mining_demo_episode_1_20250731_001359.gif" alt="Early Exploration">
+            </div>
+            <div class="learning">Early Exploration Eval num_timesteps=500000</div>
+            <small>Initial learning phase</small>
+          </div>
+          <div class="gif-card">
+            <div class="gif-container">
+              <img src="assets/gif/space_mining_demo_episode_4_20250730_225245.gif" alt="Successful Mining">
+            </div>
+            <div class="success">Successful Mining</div>
+            <small>Strategic resource collection</small>
+          </div>
         </div>
-        <div class="gif-card">
-          <img src="assets/gif/space_mining_demo_episode_1_20250731_001359.gif" alt="Early Exploration">
-          <div class="learning">Early Exploration Eval num_timesteps=500000</div>
-          <small>Initial learning phase</small>
+        
+        <!-- 第二行 -->
+        <div class="gif-row">
+          <div class="gif-card">
+            <div class="gif-container">
+              <img src="assets/gif/space_mining_demo_episode_5_20250730_224355.gif" alt="Complete Episode">
+            </div>
+            <div class="failure">Complete Episode (1200 steps)</div>
+            <small>Optimal resource collection</small>
+          </div>
+          <div class="gif-card">
+            <div class="gif-container">
+              <img src="assets/gif/space_mining_demo_episode_3_20250730_224120.gif" alt="Energy Depletion">
+            </div>
+            <div class="failure">Energy Depletion</div>
+            <small>Failed to recharge at mothership</small>
+          </div>
+          <div class="gif-card">
+            <div class="gif-container">
+              <img src="assets/gif/space_mining_demo_episode_4_20250730_222922.gif" alt="Poor Obstacle Avoidance">
+            </div>
+            <div class="failure">Poor Obstacle Avoidance</div>
+            <small>Multiple collisions</small>
+          </div>
         </div>
-        <div class="gif-card">
-          <img src="assets/gif/space_mining_demo_episode_4_20250730_225245.gif" alt="Successful Mining">
-          <div class="success">Successful Mining</div>
-          <small>Strategic resource collection</small>
-        </div>
-        <div class="gif-card">
-          <img src="assets/gif/space_mining_demo_episode_5_20250730_224355.gif" alt="Complete Episode">
-          <div class="failure">Complete Episode (1200 steps)</div>
-          <small>Optimal resource collection</small>
-        </div>
-        <div class="gif-card">
-          <img src="assets/gif/space_mining_demo_episode_3_20250730_224120.gif" alt="Energy Depletion">
-          <div class="failure">Energy Depletion</div>
-          <small>Failed to recharge at mothership</small>
-        </div>
-        <div class="gif-card">
-          <img src="assets/gif/space_mining_demo_episode_4_20250730_222922.gif" alt="Poor Obstacle Avoidance">
-          <div class="failure">Poor Obstacle Avoidance</div>
-          <small>Multiple collisions</small>
-        </div>
-      </div>
-      
-      <div class="legend">
-        <h4>Visual Elements Legend</h4>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: #32CD32;"></div>
-          <span><strong>Green Circle:</strong> Agent (mining robot)</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: #32A1C8;"></div>
-          <span><strong>Blue Circle:</strong> Mothership (delivery point)</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: #FFD700;"></div>
-          <span><strong>Yellow Circles:</strong> Asteroids (mining targets)</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: #FF4500;"></div>
-          <span><strong>Red Circles:</strong> Moving obstacles (avoid)</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: #FF0000;"></div>
-          <span><strong>Red Ring:</strong> Mining range indicator</span>
-        </div>
-        <div class="legend-item">
-          <div class="legend-color" style="background-color: #87CEEB;"></div>
-          <span><strong>Light Blue Ring:</strong> Observation range</span>
-        </div>
-        <p><strong>Health Bars:</strong> Green to red bars above asteroids show remaining resources</p>
-        <p><strong>Status Display:</strong> Top-left shows inventory, energy, and step count</p>
       </div>
     </section>
+    
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        const gifs = document.querySelectorAll('.gif-container img');
+        
+        // 创建模态框
+        const modal = document.createElement('div');
+        modal.className = 'modal';
+        modal.innerHTML = '<div class="modal-content"><span class="modal-close">&times;</span><img class="modal-img" src="" alt=""><div class="modal-title"></div></div>';
+        document.body.appendChild(modal);
+        
+        const modalImg = modal.querySelector('.modal-img');
+        const modalTitle = modal.querySelector('.modal-title');
+        const modalClose = modal.querySelector('.modal-close');
+        
+        // 强制GIF循环播放的函数
+        function forceGifLoop(img) {
+          img.setAttribute('loop', '');
+          img.setAttribute('autoplay', '');
+          img.setAttribute('playsinline', '');
+          
+          // 使用更可靠的方法重新加载GIF
+          const src = img.src;
+          const timestamp = new Date().getTime();
+          const separator = src.includes('?') ? '&' : '?';
+          img.src = src + separator + 't=' + timestamp;
+        }
+        
+        gifs.forEach(gif => {
+          // 初始设置GIF属性并强制循环
+          forceGifLoop(gif);
+          
+          // 添加点击事件
+          gif.addEventListener('click', function() {
+            modalImg.src = this.src;
+            modalTitle.textContent = this.alt;
+            modal.style.display = 'block';
+            
+            // 强制模态框中的GIF循环播放
+            setTimeout(() => {
+              forceGifLoop(modalImg);
+            }, 50);
+          });
+        });
+        
+        // 关闭模态框
+        modalClose.addEventListener('click', function() {
+          modal.style.display = 'none';
+        });
+        
+        // 点击模态框背景关闭
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) {
+            modal.style.display = 'none';
+          }
+        });
+        
+        // ESC键关闭模态框
+        document.addEventListener('keydown', function(e) {
+          if (e.key === 'Escape' && modal.style.display === 'block') {
+            modal.style.display = 'none';
+          }
+        });
+        
+        // 定期检查并强制GIF循环播放
+        setInterval(() => {
+          gifs.forEach(gif => {
+            if (!gif.hasAttribute('loop')) {
+              forceGifLoop(gif);
+            }
+          });
+        }, 2000);
+      });
+    </script>
+    
+    <div class="legend">
+      <h4>Visual Elements Legend</h4>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #32CD32;"></div>
+        <span><strong>Green Circle:</strong> Agent (mining robot)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #32A1C8;"></div>
+        <span><strong>Blue Circle:</strong> Mothership (delivery point)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #FFD700;"></div>
+        <span><strong>Yellow Circles:</strong> Asteroids (mining targets)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #FF4500;"></div>
+        <span><strong>Red Circles:</strong> Moving obstacles (avoid)</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #FF0000;"></div>
+        <span><strong>Red Ring:</strong> Mining range indicator</span>
+      </div>
+      <div class="legend-item">
+        <div class="legend-color" style="background-color: #87CEEB;"></div>
+        <span><strong>Light Blue Ring:</strong> Observation range</span>
+      </div>
+      <p><strong>Health Bars:</strong> Green to red bars above asteroids show remaining resources</p>
+      <p><strong>Status Display:</strong> Top-left shows inventory, energy, and step count</p>
+    </div>
+  </section>
     
     <section id="features" class="features">
       <h2>Features</h2>
@@ -354,13 +615,9 @@ python test_env.py
       
       <h3>Train Agent</h3>
       <pre>
-python train_space_mining.py
+python train.py
       </pre>
       
-      <h3>Visualize Results</h3>
-      <pre>
-python enjoy_trained_model.py
-      </pre>
     </section>
     <section>
       <h2>More Information</h2>
@@ -371,5 +628,7 @@ python enjoy_trained_model.py
       </ul>
     </section>
   </div>
+  
+
 </body>
 </html>
