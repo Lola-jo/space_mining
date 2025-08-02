@@ -137,7 +137,6 @@ def train_space_mining():
             tensorboard_log=f"{output_dir}/tensorboard_logs"
         )
     
-    # 创建回调函数
     eval_env = DummyVecEnv([create_env() for _ in range(1)])
     
     eval_callback = EvalCallback(
@@ -154,8 +153,7 @@ def train_space_mining():
         save_path=f"{output_dir}/checkpoints",
         name_prefix=f"{algorithm}_model"
     )
-    
-    # 创建组件记录回调
+
     class ComponentLoggerCallback(BaseCallback):
         def __init__(self, save_path, log_freq=1200, verbose=0):
             super().__init__(verbose)
