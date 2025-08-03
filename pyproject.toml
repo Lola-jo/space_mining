@@ -1,0 +1,37 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "space_mining"
+version = "0.1.0"
+description = "Space Mining RL Environment"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "gymnasium>=0.29.0",
+    "numpy>=1.21.0",
+    "pygame>=2.1.0",
+    "stable-baselines3>=2.0.0",
+    "torch>=1.9.0",
+    "matplotlib>=3.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Lola-jo/space_mining"
+Repository = "https://github.com/Lola-jo/space_mining"
+
+[project.optional-dependencies]
+testing = ["pytest"]
+docs = ["sphinx", "sphinx-rtd-theme"]
+all = ["space_mining[testing]", "space_mining[docs]"]
+
+[tool.setuptools.packages.find]
+include = ["space_mining.*"]
+exclude = ["tests.*", "docs.*"] 
