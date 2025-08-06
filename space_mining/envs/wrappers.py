@@ -1,40 +1,35 @@
 import gymnasium as gym
-from .core import SpaceMiningEnv
+from .space_mining_env import SpaceMiningEnv
+import numpy as np
+from typing import Tuple, Dict, Any
 
 class FlattenActionSpaceWrapper(gym.Wrapper):
     """
     Wrapper to ensure compatibility with standard RL algorithms in Gymnasium.
     """
-    
-    def __init__(self, env):
-        """Initialize the wrapper."""
+
+    def __init__(self, env: gym.Env) -> None:
         super().__init__(env)
-        
-        # The action space is already a Box with shape (4,)
-        # [fx, fy, fz, mine]
-        # This wrapper exists for compatibility but does not modify the action space
-        # for the simplified single-agent environment
         self.action_space = env.action_space
-        
-    def step(self, action):
-        """Execute environment step using the flattened action."""
+
+    def step(self, action: np.ndarray) -> Tuple[np.ndarray, float, bool, bool, Dict[str, Any]]:
         return self.env.step(action)
 
-def make_env(**kwargs):
+def make_env(**kwargs) -> gym.Env:
     """
     Create and wrap the space mining environment.
-    
+
     Returns:
         A wrapped environment compatible with standard RL algorithms
     """
     # For backwards compatibility, remove multi-agent parameters
     if 'num_agents' in kwargs:
         kwargs.pop('num_agents')
-    
+
     # Remove communication radius if present (only used in multi-agent version)
     if 'communication_radius' in kwargs:
         kwargs.pop('communication_radius')
-        
+
     env = SpaceMiningEnv(**kwargs)
     env = FlattenActionSpaceWrapper(env)
     return env 

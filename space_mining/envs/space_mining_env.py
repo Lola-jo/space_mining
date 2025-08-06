@@ -2,7 +2,7 @@ import gymnasium as gym
 from gymnasium import spaces
 import numpy as np
 from typing import Dict, List, Tuple, Optional, Union, Any
-
+from .renderer import Renderer
 
 class SpaceMiningEnv(gym.Env):
     """
@@ -32,17 +32,8 @@ class SpaceMiningEnv(gym.Env):
         max_resource_per_asteroid: int = 40,  # Increased from 25 to 40 for more resources per asteroid
         observation_radius: int = 15,  # Reduced from 40 to 15 for more reasonable visibility
         render_mode: Optional[str] = None,
-    ):
-        """Initialize the Space Mining environment.
-
-        Args:
-            max_episode_steps: Maximum steps per episode
-            grid_size: Size of the 3D space grid (cubic)
-            max_asteroids: Maximum number of asteroids
-            max_resource_per_asteroid: Maximum resources per asteroid
-            observation_radius: Agent observation radius
-            render_mode: Rendering mode
-        """
+    ) -> None:
+        super().__init__()
         self.max_episode_steps = max_episode_steps
         self.grid_size = grid_size
         self.max_asteroids = max(max_asteroids, 18)
@@ -51,48 +42,46 @@ class SpaceMiningEnv(gym.Env):
         self.render_mode = render_mode
 
         # Constants for physics simulation
-        self.dt = 0.1  # Time step for physics
-        self.mass = 3.0  # Further reduced mass from 5.0 to 3.0 for much faster movement
-        self.max_force = 20.0  # Further increased max force from 15.0 to 20.0 for much faster movement
-        self.drag_coef = 0.02  # Further reduced drag coefficient from 0.05 to 0.02 for much less resistance
-        self.gravity_strength = (
-            0.01  # Further reduced gravity from 0.03 to 0.01 for much easier movement
-        )
-        self.obstacle_penalty = -10.0  # Penalty for hitting obstacles
-        self.energy_consumption_rate = 0.05  # Reduce base energy consumption
-        self.mining_energy_cost = 1.0  # Reduce mining energy consumption
+        self.dt: float = 0.1  # Time step for physics
+        self.mass: float = 3.0  # Further reduced mass from 5.0 to 3.0 for much faster movement
+        self.max_force: float = 20.0  # Further increased max force from 15.0 to 20.0 for much faster movement
+        self.drag_coef: float = 0.02  # Further reduced drag coefficient from 0.05 to 0.02 for much less resistance
+        self.gravity_strength: float = 0.01  # Further reduced gravity from 0.03 to 0.01 for much easier movement
+        self.obstacle_penalty: float = -10.0  # Penalty for hitting obstacles
+        self.energy_consumption_rate: float = 0.05  # Reduce base energy consumption
+        self.mining_energy_cost: float = 1.0  # Reduce mining energy consumption
 
         # Initialize state variables
-        self.steps_count = 0
-        self.mothership_pos = np.array([grid_size / 2, grid_size / 2])  # 2D position
+        self.steps_count: int = 0
+        self.mothership_pos: np.ndarray = np.array([grid_size / 2, grid_size / 2])  # 2D position
 
         # Define the action space
         # [fx, fy, mine] - 2D environment
-        self.action_space = spaces.Box(
+        self.action_space: spaces.Box = spaces.Box(
             low=np.array([-1.0, -1.0, 0.0]),
             high=np.array([1.0, 1.0, 1.0]),
             dtype=np.float32,
         )
 
         # Maximum number of observable resources
-        self.max_obs_asteroids = 15
+        self.max_obs_asteroids: int = 15
 
         # Increased inventory limit for easier mining and higher scores
-        self.max_inventory = 100  # Increased from 60 to 100 for much easier mining and higher potential scores
+        self.max_inventory: int = 100  # Increased from 60 to 100 for much easier mining and higher potential scores
 
         # Increased observation and mining range for easier exploration and mining
         # self.observation_radius is already set from parameter (60)
-        self.mining_range = 8.0  # Increased from 5.0 to 8.0 for much easier mining
+        self.mining_range: float = 8.0  # Increased from 5.0 to 8.0 for much easier mining
 
         # Define observation space
         # Agent state: position (2), velocity (2), energy (1), inventory (1)
         # Asteroids: relative position (2) and resource amount (1) for each visible asteroid
         # Mothership: relative position (2)
-        agent_state_dim = 6
-        asteroids_dim = self.max_obs_asteroids * 3
-        mothership_dim = 2
+        agent_state_dim: int = 6
+        asteroids_dim: int = self.max_obs_asteroids * 3
+        mothership_dim: int = 2
 
-        self.observation_space = spaces.Box(
+        self.observation_space: spaces.Box = spaces.Box(
             low=-float("inf"),
             high=float("inf"),
             shape=(agent_state_dim + asteroids_dim + mothership_dim,),
@@ -100,8 +89,7 @@ class SpaceMiningEnv(gym.Env):
         )
 
         # Initialize rendering
-        self.window = None
-        self.clock = None
+        self.renderer: Renderer = Renderer(self) 
 
     def reset(
         self, seed: Optional[int] = None, options: Optional[dict] = None
@@ -581,307 +569,22 @@ class SpaceMiningEnv(gym.Env):
 
         return fitness
 
-    def render(self):
+    def render(self) -> Optional[np.ndarray]:
         """Render the environment."""
-        if self.render_mode is None:
-            return
+        return self.renderer.render()
 
-        try:
-            import pygame
-            from pygame import gfxdraw
-        except ImportError:
-            raise ImportError("pygame is not installed, run `pip install pygame`")
-
-        if self.window is None:
-            pygame.init()
-            pygame.display.init()
-            self.window = pygame.display.set_mode((800, 800))
-            pygame.display.set_caption("Space Mining Environment")
-            self.clock = pygame.time.Clock()
-            self.font = pygame.font.SysFont("Arial", 16)
-
-        self.window.fill((0, 0, 0))  # Space background (black)
-
-        # Helper function to convert 2D coordinates to screen coordinates
-        def to_screen(pos, scale=8.0):
-            x, y = pos
-            # Center the 80x80 grid in the 800x800 screen
-            # Map 0-80 to 0-800, centered at 400
-            screen_x = int(
-                400 + (x - 40) * scale
-            )  # Center at 400, scale from -40 to +40
-            screen_y = int(
-                400 + (y - 40) * scale
-            )  # Center at 400, scale from -40 to +40
-            return screen_x, screen_y
-
-        # Draw mothership
-        mothership_pos_2d = to_screen(self.mothership_pos)
-        pygame.gfxdraw.filled_circle(
-            self.window, mothership_pos_2d[0], mothership_pos_2d[1], 15, (50, 150, 200)
-        )
-
-        # Draw asteroids with health bars
-        for i, pos in enumerate(self.asteroid_positions):
-            if self.asteroid_resources[i] < 0.1:  # Depletion threshold
-                # Draw depleted asteroid as gray cross
-                asteroid_pos_2d = to_screen(pos)
-                pygame.gfxdraw.filled_circle(
-                    self.window,
-                    asteroid_pos_2d[0],
-                    asteroid_pos_2d[1],
-                    8,
-                    (100, 100, 100),  # Gray for depleted
-                )
-                # Draw X mark for depleted asteroid
-                pygame.draw.line(
-                    self.window,
-                    (150, 150, 150),
-                    (asteroid_pos_2d[0] - 5, asteroid_pos_2d[1] - 5),
-                    (asteroid_pos_2d[0] + 5, asteroid_pos_2d[1] + 5),
-                    2,
-                )
-                pygame.draw.line(
-                    self.window,
-                    (150, 150, 150),
-                    (asteroid_pos_2d[0] + 5, asteroid_pos_2d[1] - 5),
-                    (asteroid_pos_2d[0] - 5, asteroid_pos_2d[1] + 5),
-                    2,
-                )
-                continue
-
-            asteroid_pos_2d = to_screen(pos)
-            size = int(5 + self.asteroid_resources[i] / 10)
-            color_intensity = min(255, int(100 + self.asteroid_resources[i] * 3))
-            pygame.gfxdraw.filled_circle(
-                self.window,
-                asteroid_pos_2d[0],
-                asteroid_pos_2d[1],
-                size,
-                (color_intensity, color_intensity // 2, 0),
-            )
-
-            # Draw health bar for asteroid
-            health_ratio = (
-                self.asteroid_resources[i] / 40.0
-            )  # Normalize to max resource
-            health_width = int(20 * health_ratio)
-            health_x = asteroid_pos_2d[0] - 10
-            health_y = asteroid_pos_2d[1] - size - 8
-
-            # Background (gray)
-            pygame.draw.rect(self.window, (100, 100, 100), (health_x, health_y, 20, 4))
-            # Health bar (green to red based on remaining resources)
-            health_color = (
-                int(255 * health_ratio),
-                int(255 * (1 - health_ratio)),
-                0,
-            )  # Green to Red
-            pygame.draw.rect(
-                self.window, health_color, (health_x, health_y, health_width, 4)
-            )
-
-        # Draw obstacles
-        for pos in self.obstacle_positions:
-            obstacle_pos_2d = to_screen(pos)
-            pygame.gfxdraw.filled_circle(
-                self.window, obstacle_pos_2d[0], obstacle_pos_2d[1], 7, (200, 50, 50)
-            )
-
-        # Draw agent
-        agent_pos_2d = to_screen(self.agent_position)
-
-        # Draw agent body - change color based on state
-        agent_color = (50, 200, 50)  # Default green
-        if hasattr(self, "mining_asteroid_id"):
-            agent_color = (255, 165, 0)  # Orange when mining
-        elif self.agent_inventory > 0:
-            agent_color = (255, 255, 0)  # Yellow when carrying resources
-
-        pygame.gfxdraw.filled_circle(
-            self.window,
-            agent_pos_2d[0],
-            agent_pos_2d[1],
-            12,  # Increased size from 12 to 20
-            agent_color,
-        )
-
-        # Draw white outline
-        pygame.gfxdraw.aacircle(
-            self.window,
-            agent_pos_2d[0],
-            agent_pos_2d[1],
-            12,  # Increased size from 12 to 20
-            (255, 255, 255),
-        )
-
-        # Draw mining indicator
-        if hasattr(self, "mining_asteroid_id"):
-            # Draw mining beam/effect
-            asteroid_pos_2d = to_screen(
-                self.asteroid_positions[self.mining_asteroid_id]
-            )
-            pygame.draw.line(
-                self.window,
-                (255, 255, 0),  # Yellow beam
-                agent_pos_2d,
-                asteroid_pos_2d,
-                3,
-            )
-            # Draw mining text
-            mining_text = f"MINING ASTEROID {self.mining_asteroid_id}"
-            text_surface = self.font.render(mining_text, True, (255, 255, 0))
-            self.window.blit(text_surface, (agent_pos_2d[0] - 50, agent_pos_2d[1] - 30))
-
-        # Draw inventory indicator
-        if self.agent_inventory > 0:
-            pygame.gfxdraw.filled_circle(
-                self.window,
-                agent_pos_2d[0],
-                agent_pos_2d[1],
-                int(5 + self.agent_inventory / 5),  # Larger indicator
-                (200, 200, 0),
-            )
-
-        # Draw energy bar
-        energy_width = int(
-            40 * (self.agent_energy / 150.0)
-        )  # Fixed: use 150.0 as max energy
-        pygame.draw.rect(
-            self.window, (0, 0, 0), (agent_pos_2d[0] - 20, agent_pos_2d[1] - 20, 40, 5)
-        )
-        pygame.draw.rect(
-            self.window,
-            (0, 200, 0),
-            (agent_pos_2d[0] - 20, agent_pos_2d[1] - 20, energy_width, 5),
-        )
-
-        # Draw observation radius (exploration range)
-        pygame.gfxdraw.aacircle(
-            self.window,
-            agent_pos_2d[0],
-            agent_pos_2d[1],
-            int(self.observation_radius * 8.0),  # scale to screen
-            (100, 100, 255),
-        )
-
-        # Draw mining range
-        pygame.gfxdraw.aacircle(
-            self.window,
-            agent_pos_2d[0],
-            agent_pos_2d[1],
-            int(self.mining_range * 8.0),  # scale to screen
-            (255, 0, 0),  # Pure red for mining range
-        )
-
-        # Draw mining range indicator text
-        mining_text = f"MINING RANGE: {self.mining_range:.1f}"
-        text_surface = self.font.render(mining_text, True, (255, 0, 0))
-        self.window.blit(text_surface, (agent_pos_2d[0] - 50, agent_pos_2d[1] + 30))
-
-        # Display status info on top-left
-        cumulative_mining = getattr(self, "cumulative_mining_amount", 0.0)
-        status_text = [
-            f"Energy: {self.agent_energy:.0f}/150",
-            f"Inventory: {self.agent_inventory:.0f}/{self.max_inventory}",
-            f"Total Mined: {cumulative_mining:.1f}",
-            f"Collisions: {self.collision_count}",
-            f"Step: {self.steps_count}/{self.max_episode_steps}",
-            f"Asteroids: {np.sum(self.asteroid_resources >= 0.1)}/{len(self.asteroid_positions)}",
-        ]
-
-        # Add mining status
-        if hasattr(self, "mining_asteroid_id"):
-            status_text.append(f"MINING: Asteroid {self.mining_asteroid_id}")
-        elif self.agent_inventory > 0:
-            status_text.append("CARRYING RESOURCES")
-        else:
-            status_text.append("EXPLORING")
-
-        # Add DEBUG information display
-        if (
-            hasattr(self, "last_mining_info")
-            and self.last_mining_info.get("step", 0) == self.steps_count
-        ):
-            status_text.append(
-                f"MINED: {self.last_mining_info['extracted']:.1f} from Asteroid {self.last_mining_info['asteroid_id']}"
-            )
-            status_text.append(
-                f"TOTAL MINED: {self.last_mining_info.get('cumulative_mining', 0.0):.1f}"
-            )
-            if self.last_mining_info.get("asteroid_depleted", False):
-                status_text.append("ASTEROID DEPLETED!")
-
-        if (
-            hasattr(self, "last_delivery_info")
-            and self.last_delivery_info.get("step", 0) == self.steps_count
-        ):
-            status_text.append(
-                f"DELIVERED: {self.last_delivery_info['delivered']:.1f} resources"
-            )
-            status_text.append(f"FULLY RECHARGED!")
-
-        if (
-            hasattr(self, "last_collision_step")
-            and self.last_collision_step == self.steps_count
-        ):
-            status_text.append("COLLISION DETECTED!")
-
-        # Add depleted asteroid mining attempt indicator
-        if hasattr(self, "tried_depleted_asteroid") and self.tried_depleted_asteroid:
-            status_text.append("TRIED TO MINE DEPLETED ASTEROID!")
-
-        # Display status on top-left
-        for i, text in enumerate(status_text):
-            rendered_text = self.font.render(text, True, (255, 255, 255))
-            self.window.blit(rendered_text, (10, 10 + i * 20))
-
-        # Display legend on bottom-right
-        legend_text = [
-            "LEGEND:",
-            "Green Circle = Agent",
-            "Blue Circle = Mothership",
-            "Red Circles = Obstacles",
-            "Yellow Circles = Asteroids",
-            "Gray X = Depleted Asteroids",
-            "Blue Ring = Observation Range",
-            "Red Ring = Mining Range",
-        ]
-
-        # Display legend on bottom-right - fully to the right
-        for i, text in enumerate(legend_text):
-            rendered_text = self.font.render(text, True, (255, 255, 255))
-            self.window.blit(
-                rendered_text, (600, 600 + i * 20)
-            )  # Moved from 400 to 600 for full right alignment
-
-        pygame.display.flip()
-        self.clock.tick(self.metadata["render_fps"])
-
-        if self.render_mode == "rgb_array":
-            return np.transpose(
-                np.array(pygame.surfarray.pixels3d(self.window)), axes=(1, 0, 2)
-            )
-
-    def close(self):
+    def close(self) -> None:
         """Close the environment."""
-        if self.window is not None:
-            import pygame
+        self.renderer.close()
 
-            pygame.display.quit()
-            pygame.quit()
-            self.window = None
-            self.clock = None
-
-    # Example reward function, can be modified according to needs
-    def compute_reward(self, action, observation, info):
+    def compute_reward(self, action: np.ndarray, observation: np.ndarray, info: Dict[str, Any]) -> Tuple[float, Dict[str, Any]]:
         """
         Radical reward function - encourages rapid collection and high-risk behavior
         characteristic:
-        -High mining rewards
-        -Reward speed instead of punishment
-        -Tolerate moderate collisions
-        -Time punishment motivates quick action
+        - High mining rewards
+        - Reward speed instead of punishment
+        - Tolerate moderate collisions
+        - Time punishment motivates quick action
         """
         # Constants
         MINING_REWARD_RATE = 15.0
@@ -934,4 +637,4 @@ class SpaceMiningEnv(gym.Env):
         # Update previous values
         self.prev_inventory = observation[5]
 
-        return reward, reward_info
+        return reward, reward_info 

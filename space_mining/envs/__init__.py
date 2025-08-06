@@ -1,4 +1,9 @@
-from .core import SpaceMiningEnv
+"""Space Mining Environment module.
+
+This module provides the SpaceMiningEnv and related wrappers.
+"""
+
+from .space_mining_env import SpaceMiningEnv
 from .wrappers import FlattenActionSpaceWrapper, make_env
 
 from gymnasium.envs.registration import register

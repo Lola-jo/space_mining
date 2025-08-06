@@ -1,5 +1,5 @@
 from gymnasium.envs.registration import register
-from .envs.core import SpaceMiningEnv
+from .envs.space_mining_env import SpaceMiningEnv
 from .envs.wrappers import FlattenActionSpaceWrapper, make_env
 
 def register_envs():
