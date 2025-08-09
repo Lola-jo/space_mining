@@ -1,62 +1,109 @@
-#!/usr/bin/env python3
+"""Training script for PPO agent in space_mining environment.
+Can be run as a CLI script or imported as a function.
 """
-SpaceMining Environment Training Script
-Train custom SpaceMiningEnv using stable-baselines3
-"""
-
+import argparse
 import os
-import gymnasium as gym
 from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import DummyVecEnv
-from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
-from stable_baselines3.common.monitor import Monitor
-from space_mining.envs import make_env
+from space_mining import make_env
 
-def train_ppo(total_timesteps=3000000, output_dir='train_output'):
+def train_ppo(
+    output_dir="./checkpoints",
+    total_timesteps=3000000,
+    learning_rate=0.0003,
+    n_steps=2048,
+    batch_size=64,
+    gamma=0.99,
+    gae_lambda=0.95,
+    clip_range=0.2,
+    verbose=1,
+    render_mode=None
+):
+    """Train a PPO model on the SpaceMining environment.
+
+    Args:
+        output_dir (str): Directory to save checkpoints and logs.
+        total_timesteps (int): Total number of timesteps to train for.
+        learning_rate (float): Learning rate for the PPO optimizer.
+        n_steps (int): Number of steps to run per update.
+        batch_size (int): Batch size for training.
+        gamma (float): Discount factor.
+        gae_lambda (float): Lambda for Generalized Advantage Estimation.
+        clip_range (float): Clipping parameter for PPO.
+        verbose (int): Verbosity level.
+        render_mode (str): Render mode for the environment (None, 'human', 'rgb_array').
+
+    Returns:
+        PPO: Trained PPO model.
+    """
+    # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
-    
-    env = DummyVecEnv([lambda: Monitor(make_env())])
-    
+
+    # Create environment
+    env = make_env(render_mode=render_mode, max_episode_steps=1200)
+
+    # Initialize PPO model
     model = PPO(
-        'MlpPolicy',
+        "MlpPolicy",
         env,
-        verbose=1,
-        learning_rate=3e-4,
-        n_steps=2048,
-        batch_size=64,
-        n_epochs=10,
-        gamma=0.99,
-        gae_lambda=0.95,
-        clip_range=0.2,
-        ent_coef=0.01,
-        tensorboard_log=os.path.join(output_dir, 'tensorboard_logs')
+        learning_rate=learning_rate,
+        n_steps=n_steps,
+        batch_size=batch_size,
+        gamma=gamma,
+        gae_lambda=gae_lambda,
+        clip_range=clip_range,
+        verbose=verbose,
+        tensorboard_log=os.path.join(output_dir, "tensorboard_logs")
     )
-    
-    eval_env = DummyVecEnv([lambda: Monitor(make_env())])
-    
-    eval_callback = EvalCallback(
-        eval_env,
-        best_model_save_path=os.path.join(output_dir, 'best_model'),
-        log_path=os.path.join(output_dir, 'logs'),
-        eval_freq=1000,
-        deterministic=True,
-        render=False
-    )
-    
-    checkpoint_callback = CheckpointCallback(
-        save_freq=5000,
-        save_path=os.path.join(output_dir, 'checkpoints'),
-        name_prefix='ppo_model'
-    )
-    
-    model.learn(
-        total_timesteps=total_timesteps,
-        callback=[eval_callback, checkpoint_callback]
-    )
-    
-    model.save(os.path.join(output_dir, 'final_model'))
-    
+
+    # Train the model
+    model.learn(total_timesteps=total_timesteps)
+
+    # Save the final model
+    final_model_path = os.path.join(output_dir, "final_model")
+    model.save(final_model_path)
+    print(f"Model saved to {final_model_path}")
+
     return model
 
-if __name__ == '__main__':
-    train_ppo()
+def main():
+    """Main function to parse arguments and run training."""
+    parser = argparse.ArgumentParser(description="Train a PPO agent on SpaceMining environment.")
+    parser.add_argument("--output-dir", type=str, default="./checkpoints",
+                        help="Directory to save checkpoints and logs")
+    parser.add_argument("--total-timesteps", type=int, default=3000000,
+                        help="Total number of timesteps to train for")
+    parser.add_argument("--learning-rate", type=float, default=0.0003,
+                        help="Learning rate for PPO optimizer")
+    parser.add_argument("--n-steps", type=int, default=2048,
+                        help="Number of steps to run per update")
+    parser.add_argument("--batch-size", type=int, default=64,
+                        help="Batch size for training")
+    parser.add_argument("--gamma", type=float, default=0.99,
+                        help="Discount factor")
+    parser.add_argument("--gae-lambda", type=float, default=0.95,
+                        help="Lambda for Generalized Advantage Estimation")
+    parser.add_argument("--clip-range", type=float, default=0.2,
+                        help="Clipping parameter for PPO")
+    parser.add_argument("--verbose", type=int, default=1,
+                        help="Verbosity level")
+    parser.add_argument("--render-mode", type=str, default=None,
+                        choices=[None, "human", "rgb_array"],
+                        help="Render mode for the environment")
+
+    args = parser.parse_args()
+
+    train_ppo(
+        output_dir=args.output_dir,
+        total_timesteps=args.total_timesteps,
+        learning_rate=args.learning_rate,
+        n_steps=args.n_steps,
+        batch_size=args.batch_size,
+        gamma=args.gamma,
+        gae_lambda=args.gae_lambda,
+        clip_range=args.clip_range,
+        verbose=args.verbose,
+        render_mode=args.render_mode
+    )
+
+if __name__ == "__main__":
+    main()

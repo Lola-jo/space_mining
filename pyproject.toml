@@ -1,37 +1,23 @@
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "space_mining"
+[tool.poetry]
+name = "space-mining"
 version = "0.1.0"
-description = "Space Mining RL Environment"
+description = "A Gymnasium-compatible environment for space mining reinforcement learning tasks"
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT"
 readme = "README.md"
-requires-python = ">=3.8"
-license = {text = "MIT"}
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
-dependencies = [
-    "gymnasium>=0.29.0",
-    "numpy>=1.21.0",
-    "pygame>=2.1.0",
-    "stable-baselines3>=2.0.0",
-    "torch>=1.9.0",
-    "matplotlib>=3.5.0",
-]
 
-[project.urls]
-Homepage = "https://github.com/Lola-jo/space_mining"
-Repository = "https://github.com/Lola-jo/space_mining"
+[tool.poetry.dependencies]
+python = "^3.8"
+gymnasium = "^0.29.1"
+numpy = "^1.23.0"
+pygame = "^2.5.2"
+stable-baselines3 = "^2.0.0"
 
-[project.optional-dependencies]
-testing = ["pytest"]
-docs = ["sphinx", "sphinx-rtd-theme"]
-all = ["space_mining[testing]", "space_mining[docs]"]
+[tool.poetry.dev-dependencies]
+pytest = "^7.3.1"
+black = "^23.7.0"
+isort = "^5.12.0"
 
-[tool.setuptools.packages.find]
-include = ["space_mining.*"]
-exclude = ["tests.*", "docs.*"] 
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api" 

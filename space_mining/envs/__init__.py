@@ -1,19 +1,23 @@
-"""Space Mining Environment module.
-
-This module provides the SpaceMiningEnv and related wrappers.
+"""Environment module for space_mining.
+Registers the SpaceMining environment with Gymnasium.
 """
-
-from .space_mining_env import SpaceMiningEnv
-from .wrappers import FlattenActionSpaceWrapper, make_env
-
 from gymnasium.envs.registration import register
 
+from .space_mining_env import SpaceMiningEnv
+
 def register_envs():
+    """Register the space mining environments with Gymnasium."""
     register(
-        id='SpaceMining-v1',
-        entry_point='space_mining.envs:make_env',
+        id="SpaceMining-v0",
+        entry_point="space_mining.envs:SpaceMiningEnv",
+        max_episode_steps=1200,
     )
 
+def make_env(**kwargs):
+    """Create and return a SpaceMining environment instance."""
+    return SpaceMiningEnv(**kwargs)
+
+# Register environments on module import
 register_envs()
 
-__all__ = ['SpaceMiningEnv', 'FlattenActionSpaceWrapper', 'make_env']
+__all__ = ["SpaceMiningEnv", "make_env"]
