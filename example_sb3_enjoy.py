@@ -1,55 +1,47 @@
 #!/usr/bin/env python3
 """
-SpaceMining Environment Enjoy Script
-Run a trained model in SpaceMiningEnv and generate a GIF
+Example script to enjoy a trained PPO model on SpaceMiningEnv and generate a GIF.
 """
 
 import os
-import gymnasium as gym
-import numpy as np
+import argparse
 import imageio
+import numpy as np
 from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import DummyVecEnv
-from stable_baselines3.common.monitor import Monitor
 from space_mining.envs import make_env
 
-# Setup virtual display for headless rendering
-try:
-    from pyvirtualdisplay import Display
-    display = Display(visible=0, size=(800, 800))
-    display.start()
-    print("Virtual display started")
-except ImportError:
-    print("pyvirtualdisplay not installed, rendering might fail if no display is available")
-
-def enjoy_ppo(model_path='train_output/final_model', output_gif='enjoy_output/space_mining.gif', episodes=10, max_steps=1000):
+def enjoy_ppo(model_path, output_gif='enjoy_output/space_mining.gif', episodes=1, max_steps=1000, fps=30):
     os.makedirs(os.path.dirname(output_gif), exist_ok=True)
     
-    env = DummyVecEnv([lambda: Monitor(make_env(render_mode='rgb_array'))])
     model = PPO.load(model_path)
+    env = make_env(render_mode='rgb_array')
     
     frames = []
-    for episode in range(episodes):
-        obs = env.reset()
+    for ep in range(episodes):
+        obs, _ = env.reset()
+        episode_frames = []
         for step in range(max_steps):
-            action, _states = model.predict(obs, deterministic=True)
-            obs, reward, done, info = env.step(action)
-            frame = env.render(mode='rgb_array')
+            action, _ = model.predict(obs, deterministic=True)
+            obs, _, terminated, truncated, _ = env.step(action)
+            frame = env.render()
             if frame is not None:
-                frames.append(frame)
-            if done:
+                episode_frames.append(frame)
+            if terminated or truncated:
                 break
-    env.close()
+        frames.extend(episode_frames)
+        print(f"Episode {ep+1} completed in {len(episode_frames)} steps")
     
-    # Save as GIF
-    imageio.mimsave(output_gif, frames, fps=30)
+    imageio.mimsave(output_gif, frames, fps=fps)
     print(f'GIF saved as {output_gif}')
+    env.close()
 
 if __name__ == '__main__':
-    enjoy_ppo()
-    # Stop virtual display if it was started
-    try:
-        display.stop()
-        print("Virtual display stopped")
-    except NameError:
-        pass
+    parser = argparse.ArgumentParser(description='Enjoy trained PPO on SpaceMiningEnv')
+    parser.add_argument('--model_path', type=str, required=True, help='Path to trained model')
+    parser.add_argument('--output_gif', type=str, default='enjoy_output/space_mining.gif', help='Output GIF path')
+    parser.add_argument('--episodes', type=int, default=1, help='Number of episodes')
+    parser.add_argument('--max_steps', type=int, default=1000, help='Max steps per episode')
+    parser.add_argument('--fps', type=int, default=30, help='GIF frames per second')
+    args = parser.parse_args()
+    
+    enjoy_ppo(args.model_path, args.output_gif, args.episodes, args.max_steps, args.fps)

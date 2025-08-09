@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-SpaceMining Environment Training Script
-Train custom SpaceMiningEnv using stable-baselines3
+Example script to train a PPO model on SpaceMiningEnv using Stable Baselines3.
 """
 
 import os
+import argparse
 import gymnasium as gym
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import DummyVecEnv
@@ -12,7 +12,7 @@ from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
 from stable_baselines3.common.monitor import Monitor
 from space_mining.envs import make_env
 
-def train_ppo(total_timesteps=100000, output_dir='train_output'):
+def train_ppo(total_timesteps=100000, output_dir='train_output', learning_rate=3e-4):
     os.makedirs(output_dir, exist_ok=True)
     
     env = DummyVecEnv([lambda: Monitor(make_env())])
@@ -21,7 +21,7 @@ def train_ppo(total_timesteps=100000, output_dir='train_output'):
         'MlpPolicy',
         env,
         verbose=1,
-        learning_rate=3e-4,
+        learning_rate=learning_rate,
         n_steps=2048,
         batch_size=64,
         n_epochs=10,
@@ -59,4 +59,10 @@ def train_ppo(total_timesteps=100000, output_dir='train_output'):
     return model
 
 if __name__ == '__main__':
-    train_ppo()
+    parser = argparse.ArgumentParser(description='Train PPO on SpaceMiningEnv')
+    parser.add_argument('--total_timesteps', type=int, default=100000, help='Total training timesteps')
+    parser.add_argument('--output_dir', type=str, default='train_output', help='Output directory')
+    parser.add_argument('--learning_rate', type=float, default=3e-4, help='Learning rate')
+    args = parser.parse_args()
+    
+    train_ppo(args.total_timesteps, args.output_dir, args.learning_rate)
