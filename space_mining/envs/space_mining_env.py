@@ -580,7 +580,7 @@ class SpaceMiningEnv(gym.Env):
 
     def compute_reward(self, action: np.ndarray, observation: np.ndarray, info: Dict[str, Any]) -> Tuple[float, Dict[str, Any]]:
         """
-        Computes the reward for the agent following GOODREWARD pattern.
+        Computes the reward for the agent.
 
         Args:
             action: The agent's action.
@@ -591,13 +591,13 @@ class SpaceMiningEnv(gym.Env):
             Total reward (float), dictionary of individual reward components
         """
 
-        # Constants from GOODREWARD
-        SPEED_LIMIT = 10.0
-        EFFICIENCY_THRESHOLD = 0.5
-        EXPLORATION_BONUS = 3.0
-        PATH_EFFICIENCY_BONUS = 2.0
-        MINING_GUIDANCE_BONUS = 2.0
-        DELIVERY_GUIDANCE_BONUS = 3.0
+        # Constants
+        SPEED_LIMIT = 10.0  # Increased from 8.0 for more movement freedom
+        EFFICIENCY_THRESHOLD = 0.5  # Lowered from 0.7 for easier energy management
+        EXPLORATION_BONUS = 3.0  # Increased from 2.0 for better exploration
+        PATH_EFFICIENCY_BONUS = 2.0  # Increased from 1.0 for better path guidance
+        MINING_GUIDANCE_BONUS = 2.0  # New bonus for mining guidance
+        DELIVERY_GUIDANCE_BONUS = 3.0  # New bonus for delivery guidance
         
         # Initialize reward components
         speed_penalty = 0.0
@@ -610,18 +610,22 @@ class SpaceMiningEnv(gym.Env):
         # 1. Speed control penalty (encourage moderate speeds)
         speed = np.linalg.norm(observation[2:4])  # velocity from observation (2D)
         if speed > SPEED_LIMIT:
-            speed_penalty = -0.05 * (speed - SPEED_LIMIT) ** 2
-            
+            # Use quadratic penalty instead of exponential for more stable training
+            speed_penalty = -0.05 * (speed - SPEED_LIMIT) ** 2  # Reduced penalty from 0.1 to 0.05
+        
         # 2. Energy efficiency reward (encourage energy conservation)
         energy = observation[4]  # energy from observation
         energy_ratio = energy / 150.0  # normalize energy
         if energy_ratio > EFFICIENCY_THRESHOLD:
-            efficiency_reward = 1.0 * energy_ratio
-            
+            efficiency_reward = 1.0 * energy_ratio  # Increased reward from 0.5 to 1.0
+        
         # 3. Exploration reward (encourage discovering new asteroids)
+        if not hasattr(self, 'discovered_asteroids'):
+            self.discovered_asteroids = set()
+        
         # Check for newly discovered asteroids
         for i, asteroid_pos in enumerate(self.asteroid_positions):
-            if self.asteroid_resources[i] <= 0.1:  # Skip depleted asteroids
+            if self.asteroid_resources[i] <= 0.1:
                 continue
             distance = np.linalg.norm(self.agent_position - asteroid_pos)
             if distance <= self.observation_radius and i not in self.discovered_asteroids:
@@ -629,38 +633,38 @@ class SpaceMiningEnv(gym.Env):
                 exploration_reward += EXPLORATION_BONUS
         
         # 4. Path efficiency reward (encourage direct paths to objectives)
-        inventory = observation[5]  # inventory from observation
+        inventory = observation[5]  # inventory from observation (2D)
         
         if inventory > 0:
             # When carrying resources, reward being close to mothership
-            distance_to_mothership = np.linalg.norm(observation[0:2] - self.mothership_pos)
-            if distance_to_mothership < 15.0:
-                path_efficiency_reward = PATH_EFFICIENCY_BONUS * 2.0 * (1.0 - distance_to_mothership / 15.0)
-                delivery_guidance_reward = DELIVERY_GUIDANCE_BONUS * (1.0 - distance_to_mothership / 15.0)
+            distance_to_mothership = np.linalg.norm(observation[0:2] - self.mothership_pos)  # 2D position
+            if distance_to_mothership < 15.0:  # Increased delivery range from 12.0 to 15.0
+                path_efficiency_reward = PATH_EFFICIENCY_BONUS * 2.0 * (1.0 - distance_to_mothership / 15.0)  # Increased reward
+                delivery_guidance_reward = DELIVERY_GUIDANCE_BONUS * (1.0 - distance_to_mothership / 15.0)  # New delivery guidance
         else:
             # When not carrying resources, reward being close to asteroids with resources
             nearest_asteroid_dist = float('inf')
             for i, asteroid_pos in enumerate(self.asteroid_positions):
-                if self.asteroid_resources[i] > 0.1:  # Only consider non-depleted asteroids
+                if self.asteroid_resources[i] > 0.1:
                     dist = np.linalg.norm(self.agent_position - asteroid_pos)
                     nearest_asteroid_dist = min(nearest_asteroid_dist, dist)
-            
-            if nearest_asteroid_dist < float('inf'):
-                if nearest_asteroid_dist < 10.0:
-                    path_efficiency_reward = PATH_EFFICIENCY_BONUS * 2.0 * (1.0 - nearest_asteroid_dist / 10.0)
-                    mining_guidance_reward = MINING_GUIDANCE_BONUS * (1.0 - nearest_asteroid_dist / 10.0)
         
+            if nearest_asteroid_dist < float('inf'):
+                if nearest_asteroid_dist < 10.0:  # Increased mining range from 8.0 to 10.0
+                    path_efficiency_reward = PATH_EFFICIENCY_BONUS * 2.0 * (1.0 - nearest_asteroid_dist / 10.0)  # Increased reward
+                    mining_guidance_reward = MINING_GUIDANCE_BONUS * (1.0 - nearest_asteroid_dist / 10.0)  # New mining guidance
+    
         # 5. Additional guidance rewards
         # Reward for being near mothership when low on energy
         if energy_ratio < 0.3 and inventory == 0:
-            distance_to_mothership = np.linalg.norm(observation[0:2] - self.mothership_pos)
+            distance_to_mothership = np.linalg.norm(observation[0:2] - self.mothership_pos)  # 2D position
             if distance_to_mothership < 20.0:
                 delivery_guidance_reward += 1.0 * (1.0 - distance_to_mothership / 20.0)
-        
+    
         # Calculate total reward
         total_reward = (speed_penalty + efficiency_reward + exploration_reward + 
                        path_efficiency_reward + mining_guidance_reward + delivery_guidance_reward)
-        
+    
         # Return total reward and reward components
         return total_reward, {
             "speed_penalty": speed_penalty,
