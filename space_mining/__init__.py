@@ -1,14 +1,14 @@
-from gymnasium.envs.registration import register
-from .envs.space_mining_env import SpaceMiningEnv
-from .envs.wrappers import FlattenActionSpaceWrapper, make_env
+"""Top-level package for space_mining."""
+from importlib import import_module
 
-def register_envs():
-    register(
-        id='SpaceMining-v1',
-        entry_point='space_mining.envs:make_env',
-    )
+def make_env(**kwargs):
+    mod = import_module(".envs", package=__name__)
+    return mod.make_env(**kwargs)
 
-# Auto-register on import
-register_envs()
+def PPOAgent(*args, **kwargs):
+    mod = import_module(".agents.ppo_agent", package=__name__)
+    return mod.PPOAgent(*args, **kwargs)
 
-__all__ = ['SpaceMiningEnv', 'FlattenActionSpaceWrapper', 'make_env'] 
+# Assuming save_gif is in scripts or utils, but for now omit or add if created
+
+__all__ = ["make_env", "PPOAgent"] 

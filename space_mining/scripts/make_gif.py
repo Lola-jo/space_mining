@@ -1,16 +1,4 @@
 #!/usr/bin/env python3
-# ==============================================================================
-# File Description: Evaluate a trained space mining model and generate a demo GIF
-# 
-# Instructions:
-# Before running the script, please configure the following:
-#
-# 1. Environment: Ensure the 'env' file is set up correctly for the execution environment.
-# 2. Model Path: Specify the path to the trained model file using the --model_path argument.
-# 3. GIF Output: Define the output filename and path for the generated GIF using --gif_name.
-#
-# ==============================================================================
-
 import os
 import argparse
 import imageio
@@ -45,4 +33,4 @@ if __name__ == '__main__':
     parser.add_argument('--fps', type=int, default=30)
     args = parser.parse_args()
     
-    generate_gif(args.model_path, args.gif_path, args.episodes, args.max_steps, args.fps) 
+    generate_gif(args.model_path, args.gif_path, args.episodes, args.max_steps, args.fps)
