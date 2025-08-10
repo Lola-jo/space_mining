@@ -6,7 +6,8 @@ import os
 import numpy as np
 from PIL import Image
 import gymnasium as gym
-from space_mining import make_env, PPOAgent
+from space_mining import make_env
+from space_mining.agents.ppo_agent import PPOAgent
 
 def save_gif(frames, output_path, fps=30):
     """Save a sequence of frames as a GIF.
