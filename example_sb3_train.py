@@ -1,70 +1,17 @@
-#!/usr/bin/env python3
 """
 Example script to train a PPO model on SpaceMiningEnv using Stable Baselines3.
+This is a simple wrapper around the existing train_ppo functionality.
 """
 
-import os
-import argparse
-import gymnasium as gym
-from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import DummyVecEnv
-from stable_baselines3.common.callbacks import EvalCallback, CheckpointCallback
-from stable_baselines3.common.monitor import Monitor
-from space_mining.envs import make_env
-
-def train_ppo(total_timesteps=100000, output_dir='train_output', learning_rate=3e-4, device='cpu'):
-    os.makedirs(output_dir, exist_ok=True)
-    
-    env = DummyVecEnv([lambda: Monitor(make_env())])
-    
-    model = PPO(
-        'MlpPolicy',
-        env,
-        verbose=1,
-        learning_rate=learning_rate,
-        n_steps=2048,
-        batch_size=64,
-        n_epochs=10,
-        gamma=0.99,
-        gae_lambda=0.95,
-        clip_range=0.2,
-        ent_coef=0.01,
-        tensorboard_log=os.path.join(output_dir, 'tensorboard_logs'),
-        device=device
-    )
-    
-    eval_env = DummyVecEnv([lambda: Monitor(make_env())])
-    
-    eval_callback = EvalCallback(
-        eval_env,
-        best_model_save_path=os.path.join(output_dir, 'best_model'),
-        log_path=os.path.join(output_dir, 'logs'),
-        eval_freq=1000,
-        deterministic=True,
-        render=False
-    )
-    
-    checkpoint_callback = CheckpointCallback(
-        save_freq=5000,
-        save_path=os.path.join(output_dir, 'checkpoints'),
-        name_prefix='ppo_model'
-    )
-    
-    model.learn(
-        total_timesteps=total_timesteps,
-        callback=[eval_callback, checkpoint_callback]
-    )
-    
-    model.save(os.path.join(output_dir, 'final_model'))
-    
-    return model
+from space_mining.agents.train_ppo import train_ppo
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Train PPO on SpaceMiningEnv')
-    parser.add_argument('--total_timesteps', type=int, default=100000, help='Total training timesteps')
-    parser.add_argument('--output_dir', type=str, default='train_output', help='Output directory')
-    parser.add_argument('--learning_rate', type=float, default=3e-4, help='Learning rate')
-    parser.add_argument('--device', type=str, default='cpu', choices=['cpu', 'cuda'], help='Device to use for training (default: cpu)')
-    args = parser.parse_args()
-    
-    train_ppo(args.total_timesteps, args.output_dir, args.learning_rate, args.device)
+    # Simple example of training PPO on SpaceMining
+    print("Starting PPO training on SpaceMining environment...")
+
+    model = train_ppo(
+        total_timesteps=1000000, 
+        output_dir="train_output"  # Adjust as needed
+    )
+
+    print("Training completed! Model saved in 'example_training_output/final_model'")
