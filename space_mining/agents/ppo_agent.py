@@ -6,31 +6,35 @@ from stable_baselines3 import PPO
 class PPOAgent:
     """A wrapper class for the PPO model used in space_mining."""
 
-    def __init__(self, policy="MlpPolicy", env=None, **kwargs):
+    def __init__(self, policy="MlpPolicy", env=None, device="cpu", **kwargs):
         """Initialize the PPO agent.
 
         Args:
             policy (str): The policy type to use (default: 'MlpPolicy').
             env: The environment to train on (required for training).
+            device (str): Device to use ('cpu' or 'cuda', default: 'cpu').
             **kwargs: Additional arguments to pass to the PPO constructor.
         """
+        kwargs['device'] = device
         self.model = PPO(policy, env, **kwargs) if env else None
         self.policy = policy
+        self.device = device
         self.kwargs = kwargs
 
     @classmethod
-    def load(cls, path, env=None):
+    def load(cls, path, env=None, device="cpu"):
         """Load a trained PPO model from a file.
 
         Args:
             path (str): Path to the saved model file.
             env: The environment to associate with the model (if predicting).
+            device (str): Device to use ('cpu' or 'cuda', default: 'cpu').
 
         Returns:
             PPOAgent: An instance of PPOAgent with the loaded model.
         """
-        model = PPO.load(path, env=env)
-        agent = cls()
+        model = PPO.load(path, env=env, device=device)
+        agent = cls(device=device)
         agent.model = model
         return agent
 

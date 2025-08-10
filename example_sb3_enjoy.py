@@ -10,10 +10,10 @@ import numpy as np
 from stable_baselines3 import PPO
 from space_mining.envs import make_env
 
-def enjoy_ppo(model_path, output_gif='enjoy_output/space_mining.gif', episodes=1, max_steps=1000, fps=30):
+def enjoy_ppo(model_path, output_gif='enjoy_output/space_mining.gif', episodes=1, max_steps=1000, fps=30, device='cpu'):
     os.makedirs(os.path.dirname(output_gif), exist_ok=True)
     
-    model = PPO.load(model_path)
+    model = PPO.load(model_path, device=device)
     env = make_env(render_mode='rgb_array')
     
     frames = []
@@ -42,6 +42,7 @@ if __name__ == '__main__':
     parser.add_argument('--episodes', type=int, default=1, help='Number of episodes')
     parser.add_argument('--max_steps', type=int, default=1000, help='Max steps per episode')
     parser.add_argument('--fps', type=int, default=30, help='GIF frames per second')
+    parser.add_argument('--device', type=str, default='cpu', choices=['cpu', 'cuda'], help='Device to use for inference (default: cpu)')
     args = parser.parse_args()
     
-    enjoy_ppo(args.model_path, args.output_gif, args.episodes, args.max_steps, args.fps)
+    enjoy_ppo(args.model_path, args.output_gif, args.episodes, args.max_steps, args.fps, args.device)

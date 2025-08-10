@@ -29,7 +29,7 @@ def save_gif(frames, output_path, fps=30):
     )
     print(f"GIF saved to {output_path}")
 
-def generate_trajectory(checkpoint_path, num_steps=1200, render_mode="rgb_array", deterministic=True):
+def generate_trajectory(checkpoint_path, num_steps=1200, render_mode="rgb_array", deterministic=True, device="cpu"):
     """Generate a trajectory from a checkpoint.
 
     Args:
@@ -37,6 +37,7 @@ def generate_trajectory(checkpoint_path, num_steps=1200, render_mode="rgb_array"
         num_steps (int): Number of steps to run the trajectory for.
         render_mode (str): Render mode for the environment.
         deterministic (bool): Whether to use deterministic predictions.
+        device (str): Device to use ('cpu' or 'cuda', default: 'cpu').
 
     Returns:
         list: List of frames from the trajectory.
@@ -45,7 +46,7 @@ def generate_trajectory(checkpoint_path, num_steps=1200, render_mode="rgb_array"
     env = make_env(render_mode=render_mode, max_episode_steps=num_steps)
 
     # Load agent
-    agent = PPOAgent.load(checkpoint_path, env=env)
+    agent = PPOAgent.load(checkpoint_path, env=env, device=device)
 
     # Reset environment
     obs, _ = env.reset()
@@ -75,6 +76,8 @@ def main():
                         help="Frames per second for the GIF")
     parser.add_argument("--deterministic", action="store_true",
                         help="Use deterministic predictions")
+    parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"],
+                        help="Device to use for inference (default: cpu)")
 
     args = parser.parse_args()
 
@@ -82,7 +85,8 @@ def main():
     frames = generate_trajectory(
         checkpoint_path=args.checkpoint,
         num_steps=args.steps,
-        deterministic=args.deterministic
+        deterministic=args.deterministic,
+        device=args.device
     )
 
     # Save as GIF

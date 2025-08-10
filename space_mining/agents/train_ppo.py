@@ -16,7 +16,8 @@ def train_ppo(
     gae_lambda=0.95,
     clip_range=0.2,
     verbose=1,
-    render_mode=None
+    render_mode=None,
+    device="cpu"
 ):
     """Train a PPO model on the SpaceMining environment.
 
@@ -31,6 +32,7 @@ def train_ppo(
         clip_range (float): Clipping parameter for PPO.
         verbose (int): Verbosity level.
         render_mode (str): Render mode for the environment (None, 'human', 'rgb_array').
+        device (str): Device to use for training ('cpu' or 'cuda').
 
     Returns:
         PPO: Trained PPO model.
@@ -52,7 +54,8 @@ def train_ppo(
         gae_lambda=gae_lambda,
         clip_range=clip_range,
         verbose=verbose,
-        tensorboard_log=os.path.join(output_dir, "tensorboard_logs")
+        tensorboard_log=os.path.join(output_dir, "tensorboard_logs"),
+        device=device
     )
 
     # Train the model
@@ -89,6 +92,8 @@ def main():
     parser.add_argument("--render-mode", type=str, default=None,
                         choices=[None, "human", "rgb_array"],
                         help="Render mode for the environment")
+    parser.add_argument("--device", type=str, default="cpu", choices=["cpu", "cuda"],
+                        help="Device to use for training (default: cpu)")
 
     args = parser.parse_args()
 
@@ -102,7 +107,8 @@ def main():
         gae_lambda=args.gae_lambda,
         clip_range=args.clip_range,
         verbose=args.verbose,
-        render_mode=args.render_mode
+        render_mode=args.render_mode,
+        device=args.device
     )
 
 if __name__ == "__main__":
