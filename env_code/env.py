@@ -250,15 +250,16 @@ class SpaceMiningEnv(gym.Env):
         
         # Enforce boundary conditions with stronger containment
         boundary_margin = 5.0  # Keep agent away from edges
+        boundary_collision = False
         for axis in range(2):  # 2D boundaries
             if self.agent_position[axis] < boundary_margin:
                 self.agent_position[axis] = boundary_margin
                 self.agent_velocity[axis] = -0.3 * self.agent_velocity[axis]  # Stronger bounce
-                reward += -1.0  # Increased boundary penalty
+                boundary_collision = True
             elif self.agent_position[axis] > self.grid_size - boundary_margin:
                 self.agent_position[axis] = self.grid_size - boundary_margin
                 self.agent_velocity[axis] = -0.3 * self.agent_velocity[axis]  # Stronger bounce
-                reward += -1.0  # Increased boundary penalty
+                boundary_collision = True
         
         # Consume energy based on actions - much more efficient
         energy_used = self.energy_consumption_rate * 0.5  # Reduced base energy consumption from 2.0 to 0.5
@@ -274,9 +275,10 @@ class SpaceMiningEnv(gym.Env):
         self.last_energy_used = energy_used
         
         # Check for energy depletion
+        energy_depleted = False
         if self.agent_energy <= 0:
             self.agent_energy = 0
-            reward += -10.0  # Reduced penalty for energy depletion
+            energy_depleted = True
             terminated = True
         else:
             terminated = False
@@ -286,28 +288,30 @@ class SpaceMiningEnv(gym.Env):
         for obstacle_pos in self.obstacle_positions:
             distance = np.linalg.norm(self.agent_position - obstacle_pos)
             if distance < 1.5:  # Stricter collision threshold
-                reward += -10.0  # Reduced penalty for collisions
                 obstacle_collisions += 1
                 self.collision_count += 1
                 # Track collision for display
                 if not hasattr(self, 'last_collision_step'):
                     self.last_collision_step = 0
                 self.last_collision_step = self.steps_count
-                # Simple collision response
+                # Stronger collision response to push agent away
                 to_obstacle = self.agent_position - obstacle_pos
                 if np.linalg.norm(to_obstacle) > 0:
                     to_obstacle = to_obstacle / np.linalg.norm(to_obstacle)
-                    self.agent_velocity += to_obstacle * 2.0
-        # Terminate if too many collisions - increased tolerance
-        if self.collision_count >= 12:  # Increased from 3 to 8
+                    self.agent_velocity += to_obstacle * 5.0  # Increased push force
+                    # Also move agent position away from obstacle
+                    self.agent_position += to_obstacle * 2.0
+        # Terminate if too many collisions - reasonable tolerance
+        if self.collision_count >= 8:  # Reduced from 20 to 8 for stricter collision control
             print(f"[EPISODE END] Step {self.steps_count}: Too many collisions, terminating episode.")
             terminated = True
         
         # Enhanced mining action - much easier and more rewarding
+        mining_success = False
+        mining_amount = 0.0
+        tried_depleted_asteroid = False
+        
         if mine and self.agent_energy > 0 and self.agent_inventory < self.max_inventory:
-            mined_something = False
-            tried_depleted_asteroid = False
-            
             for i, asteroid_pos in enumerate(self.asteroid_positions):
                 distance = np.linalg.norm(self.agent_position - asteroid_pos)
                 if distance < self.mining_range:
@@ -322,6 +326,7 @@ class SpaceMiningEnv(gym.Env):
                     if max_possible > 0:
                         self.asteroid_resources[i] -= max_possible
                         self.agent_inventory += max_possible
+                        mining_amount = max_possible
                         
                         # Track cumulative mining amount
                         if not hasattr(self, 'cumulative_mining_amount'):
@@ -341,25 +346,19 @@ class SpaceMiningEnv(gym.Env):
                         }
                         # Set mining asteroid ID for display
                         self.mining_asteroid_id = i
-                        reward += max_possible * 8.0  # Increased mining reward from 4.0 to 8.0 for higher scores
-                        mined_something = True
+                        mining_success = True
                         self.agent_velocity *= 0.8  # Reduced speed reduction from 0.7 to 0.8 for less slowdown
                         break
             
-            if not mined_something:
+            if not mining_success:
                 if tried_depleted_asteroid:
-                    reward -= 0.2  # Penalty for trying to mine depleted asteroid
                     # Track depleted asteroid mining attempt for display
                     self.tried_depleted_asteroid = True
-                else:
-                    reward -= 0.1  # Reduced penalty for failed mining from 0.2 to 0.1
                 # Clear mining asteroid ID if not mining
                 if hasattr(self, 'mining_asteroid_id'):
                     delattr(self, 'mining_asteroid_id')
                 
         elif mine and self.agent_inventory >= self.max_inventory:
-            # print(f"[DEBUG] Step {self.steps_count}: Inventory full, cannot mine.")
-            reward -= 0.2  # Reduced penalty for trying to mine when full from 0.5 to 0.2
             # Clear mining asteroid ID if not mining
             if hasattr(self, 'mining_asteroid_id'):
                 delattr(self, 'mining_asteroid_id')
@@ -369,10 +368,12 @@ class SpaceMiningEnv(gym.Env):
                 delattr(self, 'mining_asteroid_id')
         
         # Check for delivery to mothership - Much easier delivery
+        delivery_success = False
+        delivered_amount = 0.0
         distance_to_mothership = np.linalg.norm(self.agent_position - self.mothership_pos)
         if distance_to_mothership < 12.0 and self.agent_inventory > 0:  # Increased delivery range from 8.0 to 12.0
             delivered_amount = self.agent_inventory
-            reward += delivered_amount * 12.0  # Increased delivery reward from 6.0 to 12.0 for higher scores
+            delivery_success = True
             # Track delivery for display
             if not hasattr(self, 'last_delivery_info'):
                 self.last_delivery_info = {}
@@ -386,7 +387,6 @@ class SpaceMiningEnv(gym.Env):
             self.agent_inventory = 0
             # Fully recharge energy when at mothership
             self.agent_energy = 150.0  # Set to full energy
-            reward += energy_recharged * 0.5  # Increased recharge reward from 0.2 to 0.5
         
         # Update obstacles
         for i in range(len(self.obstacle_positions)):
@@ -418,20 +418,25 @@ class SpaceMiningEnv(gym.Env):
         info = self._get_info()
         info["obstacle_collisions"] = obstacle_collisions
         
-        # Compute advanced reward (complements the immediate rewards from step function)
-        advanced_reward, reward_info = self.compute_reward(action, observation, info)
-        reward += advanced_reward
+        # Compute all rewards in one place
+        reward, reward_info = self.compute_reward(
+            action, observation, info,
+            boundary_collision=boundary_collision,
+            obstacle_collisions=obstacle_collisions,
+            mining_success=mining_success,
+            mining_amount=mining_amount,
+            tried_depleted_asteroid=tried_depleted_asteroid,
+            delivery_success=delivery_success,
+            delivered_amount=delivered_amount,
+            energy_depleted=energy_depleted,
+            terminated=terminated,
+            truncated=truncated
+        )
         
         # Compute fitness score for evaluation
         fitness_score = self.compute_fitness_score()
         info["fitness_score"] = fitness_score
         info.update(reward_info)
-        
-        # Add immediate reward components to info for debugging
-        info["immediate_rewards"] = {
-            "mining_reward": reward - advanced_reward,  # The reward from step function before advanced reward
-            "total_reward": reward
-        }
         
         if self.render_mode == "human":
             self.render()
@@ -837,100 +842,50 @@ class SpaceMiningEnv(gym.Env):
             pygame.quit()
             self.window = None
             self.clock = None
-    # Generated code by stable-eureka
-    def compute_reward(self, action, observation, info):
-        """
-        Computes the reward for the agent.
-
-        Args:
-            action: The agent's action.
-            observation: The agent's observation.
-            info: Additional information about the environment.
-
-        Returns:
-            Total reward (float), dictionary of individual reward components
-        """
-
+        # Generated code by stable-eureka
+    def compute_reward(self, action, observation, info, **kwargs):
+        # Initialize custom attributes
+        if not hasattr(self, 'obstacle_collisions'):
+            self.obstacle_collisions = 0
+        if not hasattr(self, 'mining_successes'):
+            self.mining_successes = 0
+        if not hasattr(self, 'delivery_successes'):
+            self.delivery_successes = 0
+    
         # Constants
-        SPEED_LIMIT = 10.0  # Increased from 8.0 for more movement freedom
-        EFFICIENCY_THRESHOLD = 0.5  # Lowered from 0.7 for easier energy management
-        EXPLORATION_BONUS = 3.0  # Increased from 2.0 for better exploration
-        PATH_EFFICIENCY_BONUS = 2.0  # Increased from 1.0 for better path guidance
-        MINING_GUIDANCE_BONUS = 2.0  # New bonus for mining guidance
-        DELIVERY_GUIDANCE_BONUS = 3.0  # New bonus for delivery guidance
-        
-        # Initialize reward components
-        speed_penalty = 0.0
-        efficiency_reward = 0.0
-        exploration_reward = 0.0
-        path_efficiency_reward = 0.0
-        mining_guidance_reward = 0.0
-        delivery_guidance_reward = 0.0
-        
-        # 1. Speed control penalty (encourage moderate speeds)
-        speed = np.linalg.norm(observation[2:4])  # velocity from observation (2D)
-        if speed > SPEED_LIMIT:
-            # Use quadratic penalty instead of exponential for more stable training
-            speed_penalty = -0.05 * (speed - SPEED_LIMIT) ** 2  # Reduced penalty from 0.1 to 0.05
-        
-        # 2. Energy efficiency reward (encourage energy conservation)
-        energy = observation[4]  # energy from observation
-        energy_ratio = energy / 150.0  # normalize energy
-        if energy_ratio > EFFICIENCY_THRESHOLD:
-            efficiency_reward = 1.0 * energy_ratio  # Increased reward from 0.5 to 1.0
-        
-        # 3. Exploration reward (encourage discovering new asteroids)
-        if not hasattr(self, 'discovered_asteroids'):
-            self.discovered_asteroids = set()
-        
-        # Check for newly discovered asteroids
-        for i, asteroid_pos in enumerate(self.asteroid_positions):
-            if self.asteroid_resources[i] <= 0.1:
-                continue
-            distance = np.linalg.norm(self.agent_position - asteroid_pos)
-            if distance <= self.observation_radius and i not in self.discovered_asteroids:
-                self.discovered_asteroids.add(i)
-                exploration_reward += EXPLORATION_BONUS
-        
-        # 4. Path efficiency reward (encourage direct paths to objectives)
-        inventory = observation[5]  # inventory from observation (2D)
-        
-        if inventory > 0:
-            # When carrying resources, reward being close to mothership
-            distance_to_mothership = np.linalg.norm(observation[0:2] - self.mothership_pos)  # 2D position
-            if distance_to_mothership < 15.0:  # Increased delivery range from 12.0 to 15.0
-                path_efficiency_reward = PATH_EFFICIENCY_BONUS * 2.0 * (1.0 - distance_to_mothership / 15.0)  # Increased reward
-                delivery_guidance_reward = DELIVERY_GUIDANCE_BONUS * (1.0 - distance_to_mothership / 15.0)  # New delivery guidance
-        else:
-            # When not carrying resources, reward being close to asteroids with resources
-            nearest_asteroid_dist = float('inf')
-            for i, asteroid_pos in enumerate(self.asteroid_positions):
-                if self.asteroid_resources[i] > 0.1:
-                    dist = np.linalg.norm(self.agent_position - asteroid_pos)
-                    nearest_asteroid_dist = min(nearest_asteroid_dist, dist)
-            
-            if nearest_asteroid_dist < float('inf'):
-                if nearest_asteroid_dist < 10.0:  # Increased mining range from 8.0 to 10.0
-                    path_efficiency_reward = PATH_EFFICIENCY_BONUS * 2.0 * (1.0 - nearest_asteroid_dist / 10.0)  # Increased reward
-                    mining_guidance_reward = MINING_GUIDANCE_BONUS * (1.0 - nearest_asteroid_dist / 10.0)  # New mining guidance
-        
-        # 5. Additional guidance rewards
-        # Reward for being near mothership when low on energy
-        if energy_ratio < 0.3 and inventory == 0:
-            distance_to_mothership = np.linalg.norm(observation[0:2] - self.mothership_pos)  # 2D position
-            if distance_to_mothership < 20.0:
-                delivery_guidance_reward += 1.0 * (1.0 - distance_to_mothership / 20.0)
-        
+        SPEED_LIMIT = 10.0
+        MINING_REWARD = 50.0
+        DELIVERY_REWARD = 100.0
+        OBSTACLE_COLLISION_PENALTY = -20.0
+        BOUNDARY_COLLISION_PENALTY = -10.0
+        ENERGY_DECAY_PENALTY = -0.1
+        TIME_STEP_REWARD = 0.01
+    
+        # Calculate rewards
+        mining_reward = MINING_REWARD * kwargs["mining_success"]
+        delivery_reward = DELIVERY_REWARD * kwargs["delivery_success"]
+        obstacle_collision_penalty = OBSTACLE_COLLISION_PENALTY * kwargs["obstacle_collisions"]
+        boundary_collision_penalty = BOUNDARY_COLLISION_PENALTY * kwargs["boundary_collision"]
+        energy_decay_penalty = ENERGY_DECAY_PENALTY * (self.agent_energy - SPEED_LIMIT)
+        time_step_reward = TIME_STEP_REWARD
+    
         # Calculate total reward
-        total_reward = (speed_penalty + efficiency_reward + exploration_reward + 
-                       path_efficiency_reward + mining_guidance_reward + delivery_guidance_reward)
-        
-        # Return total reward and reward components
-        return total_reward, {
-            "speed_penalty": speed_penalty,
-            "efficiency_reward": efficiency_reward,
-            "exploration_reward": exploration_reward,
-            "path_efficiency_reward": path_efficiency_reward,
-            "mining_guidance_reward": mining_guidance_reward,
-            "delivery_guidance_reward": delivery_guidance_reward,
+        total_reward = mining_reward + delivery_reward + obstacle_collision_penalty + boundary_collision_penalty + energy_decay_penalty + time_step_reward
+    
+        # Increment custom attributes
+        self.obstacle_collisions += kwargs["obstacle_collisions"]
+        self.mining_successes += kwargs["mining_success"]
+        self.delivery_successes += kwargs["delivery_success"]
+    
+        # Create reward dictionary
+        reward_info = {
+            "mining_reward": mining_reward,
+            "delivery_reward": delivery_reward,
+            "obstacle_collision_penalty": obstacle_collision_penalty,
+            "boundary_collision_penalty": boundary_collision_penalty,
+            "energy_decay_penalty": energy_decay_penalty,
+            "time_step_reward": time_step_reward,
+            "total_reward": total_reward,
         }
+    
+        return total_reward, reward_info
